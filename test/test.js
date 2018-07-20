@@ -1,4 +1,4 @@
-var spark = require('../spark.js');
+var spark = require('../spark-sync.js');
 
 function runTests()
 {

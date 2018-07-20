@@ -9,6 +9,7 @@ var path = require('path');
 exports.createJSONFilesSync = function createJSONFilesSync(path, accessSubDirs)
 {
     //TODO: big refactor: create hashmap while walking
+    //TODO: add flag for more files other than text
     var allFiles = walkSync(path, accessSubDirs);
     var files = filterFilesSync(allFiles);
     return files;
