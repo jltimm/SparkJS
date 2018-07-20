@@ -1,22 +1,58 @@
 var fs = require('fs');
+var path = require('path');
 
 /**
  * Creates JSON files with tfidf representation from text files synchronously.
  * @param {string} path The path where the files are
  * @param {boolean} accessSubDirs Flag indicating if sub directories should be accessed
  */
-module.exports = function createJSONFilesSync(path, accessSubDirs)
+exports.createJSONFilesSync = function createJSONFilesSync(path, accessSubDirs)
 {
-    var files = retrieveFilesSync(path, accessSubDirs);
-    console.log(files);
+    var allFiles = walkSync(path, accessSubDirs);
+    var files = filterFilesSync(allFiles);
+    return files;
 }
 
 /**
- * Retrieves files in a directory syncrhonoushly
-* @param {string} path The path where the files are
+ * Checks if the filename is a text file or not
+ * @param {string} name The filename 
+ */
+function isTextFile(name)
+{
+    var extname = path.extname(name);
+    if (extname == '.txt' || extname == '.doc' || extname == '.docx')
+    {
+        return true;
+    }
+}
+
+/**
+ * Filters out directories, hidden files, non-text files, etc.
+ * @param {array} files The list of files
+ */
+function filterFilesSync(files)
+{
+    var filteredFiles = [];
+    for (var i = 0; i < files.length; i++)
+    {
+        var basename = path.basename(files[i]);
+        if (basename[0] == '.' || fs.lstatSync(files[i]).isDirectory() || !isTextFile(basename))
+        {
+            continue;
+        } else
+        {
+            filteredFiles.push(files[i]);
+        }
+    }
+    return filteredFiles;
+}
+
+/**
+ * Walks through files in a directory synchronoushly
+ * @param {string} path The path where the files are
  * @param {boolean} accessSubDirs Flag indicating if sub directories should be accessed
  */
-function retrieveFilesSync(path, accessSubDirs)
+function walkSync(path, accessSubDirs)
 {
     var files = [];
     if (fs.existsSync(path) && fs.lstatSync(path).isDirectory())
@@ -25,13 +61,14 @@ function retrieveFilesSync(path, accessSubDirs)
         if (accessSubDirs)
         {
             var subFiles = []
-            for (file in files)
+            for (var i = 0; i < files.length; i++)
             {
-                filePath = path + '/' + files[file];
+                var filePath = path + '/' + files[i];
                 if (fs.existsSync(filePath) && fs.lstatSync(filePath).isDirectory())
                 {
-                    subFiles = retrieveFiles(filePath);
+                    subFiles = walkSync(filePath, true);
                 }
+                files[i] = filePath;
             }
             files = files.concat(subFiles);
         }
