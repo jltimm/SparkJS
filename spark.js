@@ -8,6 +8,7 @@ var path = require('path');
  */
 exports.createJSONFilesSync = function createJSONFilesSync(path, accessSubDirs)
 {
+    //TODO: big refactor: create hashmap while walking
     var allFiles = walkSync(path, accessSubDirs);
     var files = filterFilesSync(allFiles);
     return files;
@@ -54,6 +55,7 @@ function filterFilesSync(files)
  */
 function walkSync(path, accessSubDirs)
 {
+    //TODO: check cwd
     var files = [];
     if (fs.existsSync(path) && fs.lstatSync(path).isDirectory())
     {
