@@ -51,22 +51,22 @@ function filterFilesSync(files)
 
 /**
  * Walks through files in a directory synchronoushly
- * @param {string} path The path where the files are
+ * @param {string} dir The path where the files are
  * @param {boolean} accessSubDirs Flag indicating if sub directories should be accessed
  */
-function walkSync(path, accessSubDirs)
+function walkSync(dir, accessSubDirs)
 {
     //TODO: check cwd
     var files = [];
-    if (fs.existsSync(path) && fs.lstatSync(path).isDirectory())
+    if (fs.existsSync(dir) && fs.lstatSync(dir).isDirectory())
     {
-        files = fs.readdirSync(path);
+        files = fs.readdirSync(dir);
         if (accessSubDirs)
         {
             var subFiles = []
             for (var i = 0; i < files.length; i++)
             {
-                var filePath = path + '/' + files[i];
+                var filePath = path.resolve(dir, files[i]);
                 if (fs.existsSync(filePath) && fs.lstatSync(filePath).isDirectory())
                 {
                     subFiles = walkSync(filePath, true);
