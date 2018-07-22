@@ -11,8 +11,56 @@ exports.createJSONFiles = function createJSONFiles(path, callback)
     walk(path, function(err, files)
     {
         if (err) throw err;
-        files = filterFiles(files);
-        callback(null, files);
+        getWordMaps(files, function(err, data)
+        {
+            //TODO
+        });
+    });
+}
+
+/**
+ * Gets the word maps for each file
+ * @param {array} filenames The filenames
+ * @param {function} callback The callback
+ */
+function getWordMaps(filenames, callback)
+{
+    var globalDict = {};
+    var pending = filenames.length;
+    filenames.forEach(function(filename)
+    {
+        fs.readFile(filename, 'utf8', function(err, data)
+        {
+            var fileDict = {};
+            data = data.replace(/[^\w\s]/gi, '');
+            var words = data.split(' ');
+            words.forEach(function(word)
+            {
+                if (!word)
+                {
+                    return;
+                }
+                word = word.toLowerCase();
+                if (globalDict[word])
+                {
+                    globalDict[word] = globalDict[word] + 1;
+                } else
+                {
+                    globalDict[word] = 1;
+                }
+                if (fileDict[word])
+                {
+                    fileDict[word] = fileDict[word] + 1;
+                } else
+                {
+                    fileDict[word] = 1;
+                }
+            });
+            if (!--pending)
+            {
+                callback(null, globalDict);
+            }
+        });
     });
 }
 
@@ -30,28 +78,7 @@ function isTextFile(name)
 }
 
 /**
- * Filters out hidden files and non-text files.
- * @param {array} files The list of files. 
- */
-function filterFiles(files)
-{
-    var filteredFiles = [];
-    for (var i = 0; i < files.length; i++)
-    {
-        var basename = path.basename(files[i]);
-        if (basename[0] == '.' || !isTextFile(basename))
-        {
-            continue;
-        } else
-        {
-            filteredFiles.push(files[i]);
-        }
-    }
-    return filteredFiles;
-}
-
-/**
- * Walks through files in a directory asynchronously. (From https://stackoverflow.com/questions/5827612/node-js-fs-readdir-recursive-directory-search)
+ * Walks through files in a directory asynchronously.
  * @param {string} dir The directory where the files are 
  * @param {function} callback The callback
  */
@@ -68,6 +95,7 @@ function walk(dir, callback)
             file = path.resolve(dir, file);
             fs.stat(file, function(err, stat)
             {
+                if (err) throw err;
                 if (stat && stat.isDirectory())
                 {
                     walk(file, function(err, res)
@@ -77,7 +105,11 @@ function walk(dir, callback)
                     });
                 } else
                 {
-                    results.push(file);
+                    var basename = path.basename(file);
+                    if (isTextFile(basename))
+                    {
+                        results.push(file);
+                    }
                     if (!--pending) callback(null, results);
                 }
             });
