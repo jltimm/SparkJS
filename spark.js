@@ -11,11 +11,27 @@ exports.createJSONFiles = function createJSONFiles(path, callback)
     walk(path, function(err, files)
     {
         if (err) throw err;
-        getWordMaps(files, function(err, data)
+        getWordMaps(files, function(err, globalMap, fileMaps)
         {
-            //TODO
+            if (err) throw err;
+            tfidf(globalMap, fileMaps, function(err, data)
+            {
+                if (err) throw err;
+                // TODO: handle data
+            })
         });
     });
+}
+
+/**
+ * Creates TFIDF JSON files from word mapss.
+ * @param {dictionary} globalMap The global word map
+ * @param {array} fileMaps The list of file mapss
+ * @param {function} callback The callback
+ */
+function tfidf(globalMap, fileMaps, callback)
+{
+    //TODO: finish this method
 }
 
 /**
@@ -25,15 +41,19 @@ exports.createJSONFiles = function createJSONFiles(path, callback)
  */
 function getWordMaps(filenames, callback)
 {
-    var globalDict = {};
+    var globalMap = {};
+    var fileMaps = [];
     var pending = filenames.length;
     filenames.forEach(function(filename)
     {
         fs.readFile(filename, 'utf8', function(err, data)
         {
-            var fileDict = {};
+            if (err) throw err;
+            var fileMap = {};
+            // Remove all non alphanumeric characters, split on space.
             data = data.replace(/[^\w\s]/gi, '');
             var words = data.split(' ');
+
             words.forEach(function(word)
             {
                 if (!word)
@@ -41,24 +61,25 @@ function getWordMaps(filenames, callback)
                     return;
                 }
                 word = word.toLowerCase();
-                if (globalDict[word])
+                if (globalMap[word])
                 {
-                    globalDict[word] = globalDict[word] + 1;
+                    globalMap[word] = globalMap[word] + 1;
                 } else
                 {
-                    globalDict[word] = 1;
+                    globalMap[word] = 1;
                 }
-                if (fileDict[word])
+                if (fileMap[word])
                 {
-                    fileDict[word] = fileDict[word] + 1;
+                    fileMap[word] = fileMap[word] + 1;
                 } else
                 {
-                    fileDict[word] = 1;
+                    fileMap[word] = 1;
                 }
             });
+            fileMaps.push({filename: filename, fileMap: fileMap});
             if (!--pending)
             {
-                callback(null, globalDict);
+                callback(null, globalMap, fileMaps);
             }
         });
     });
@@ -70,6 +91,7 @@ function getWordMaps(filenames, callback)
  */
 function isTextFile(name)
 {
+    // TODO: find out way to add more than just text files... maybe an array of accepted file types?
     var extname = path.extname(name);
     if (extname == '.txt' || extname == '.doc' || extname == '.docx')
     {
@@ -85,12 +107,12 @@ function isTextFile(name)
 function walk(dir, callback)
 {
     var results = [];
-    fs.readdir(dir, function(err, list)
+    fs.readdir(dir, function(err, files)
     {
         if (err) return callback(err);
-        var pending = list.length;
+        var pending = files.length;
         if (!pending) return callback(null, results);
-        list.forEach(function(file)
+        files.forEach(function(file)
         {
             file = path.resolve(dir, file);
             fs.stat(file, function(err, stat)
@@ -100,6 +122,7 @@ function walk(dir, callback)
                 {
                     walk(file, function(err, res)
                     {
+                        if (err) throw err;
                         results = results.concat(res);
                         if (!--pending) callback(null, results);
                     });
