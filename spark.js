@@ -61,19 +61,19 @@ function getWordMaps(filenames, callback)
                     return;
                 }
                 word = word.toLowerCase();
-                if (globalMap[word])
-                {
-                    globalMap[word] = globalMap[word] + 1;
-                } else
-                {
-                    globalMap[word] = 1;
-                }
                 if (fileMap[word])
                 {
                     fileMap[word] = fileMap[word] + 1;
                 } else
                 {
                     fileMap[word] = 1;
+                    if (globalMap[word])
+                    {
+                        globalMap[word] = globalMap[word] + 1;
+                    } else
+                    {
+                        globalMap[word] = 1;
+                    }
                 }
             });
             fileMaps.push({filename: filename, fileMap: fileMap});
