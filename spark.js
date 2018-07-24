@@ -88,14 +88,27 @@ function getWordMaps(filenames, callback)
 /**
  * Checks if the filename is a text file or not
  * @param {string} name The filename 
+ * @param {array} extensions Addition extensions
  */
-function isTextFile(name)
+function isTextFile(name, extensions)
 {
-    // TODO: find out way to add more than just text files... maybe an array of accepted file types?
     var extname = path.extname(name);
     if (extname == '.txt' || extname == '.doc' || extname == '.docx')
     {
         return true;
+    }
+    if (extensions)
+    {
+        var shouldAdd = false;
+        extensions.forEach(function(extension)
+        {
+            if (extname == extension)
+            {
+                shouldAdd = true;
+                return true;
+            }
+        });
+        return shouldAdd;
     }
 }
 
