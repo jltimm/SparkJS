@@ -8,30 +8,39 @@ var path = require('path');
  */
 exports.createJSONFiles = function createJSONFiles(path, callback)
 {
-    walk(path, function(err, files)
+    walk(path, (err, files) =>
     {
         if (err) throw err;
-        getWordMaps(files, function(err, globalMap, fileMaps)
+        getWordMaps(files, (err, globalMap, fileMaps) =>
         {
             if (err) throw err;
-            tfidf(globalMap, fileMaps, function(err, data)
-            {
-                if (err) throw err;
-                // TODO: handle data
-            })
+            var maps = tfidf(globalMap, fileMaps);
+            console.log(maps);
         });
     });
 }
 
 /**
- * Creates TFIDF JSON files from word mapss.
+ * Creates TFIDF from word maps.
+ * http://www.tfidf.com/
  * @param {dictionary} globalMap The global word map
  * @param {array} fileMaps The list of file mapss
- * @param {function} callback The callback
  */
-function tfidf(globalMap, fileMaps, callback)
+function tfidf(globalMap, fileMaps)
 {
-    //TODO: finish this method
+    var numFiles = fileMaps.length;
+    fileMaps.forEach(file =>
+    {
+        for (var key in file.fileMap)
+        {
+            var tf = file.fileMap[key] / file.numWords;
+            var idf = numFiles / globalMap[key];
+            var tfidf = tf * idf;
+            file.tfidfMap[key] = tfidf;
+        }
+    });
+    var maps = {global: globalMap, files: fileMaps};
+    return maps;
 }
 
 /**
@@ -44,23 +53,24 @@ function getWordMaps(filenames, callback)
     var globalMap = {};
     var fileMaps = [];
     var pending = filenames.length;
-    filenames.forEach(function(filename)
+    filenames.forEach((filename) =>
     {
-        fs.readFile(filename, 'utf8', function(err, data)
+        fs.readFile(filename, 'utf8', (err, data) =>
         {
             if (err) throw err;
             var fileMap = {};
             // Remove all non alphanumeric characters, split on space.
             data = data.replace(/[^\w\s]/gi, '');
             var words = data.split(' ');
-
-            words.forEach(function(word)
+            var numWords = 0;
+            words.forEach(word =>
             {
                 if (!word)
                 {
                     return;
                 }
                 word = word.toLowerCase();
+                numWords++;
                 if (fileMap[word])
                 {
                     fileMap[word] = fileMap[word] + 1;
@@ -76,7 +86,7 @@ function getWordMaps(filenames, callback)
                     }
                 }
             });
-            fileMaps.push({filename: filename, fileMap: fileMap});
+            fileMaps.push({filename: filename, fileMap: fileMap, numWords: numWords, tfidfMap: {}});
             if (!--pending)
             {
                 callback(null, globalMap, fileMaps);
@@ -100,7 +110,7 @@ function isTextFile(name, extensions)
     if (extensions)
     {
         var shouldAdd = false;
-        extensions.forEach(function(extension)
+        extensions.forEach(extension =>
         {
             if (extname == extension)
             {
@@ -120,20 +130,20 @@ function isTextFile(name, extensions)
 function walk(dir, callback)
 {
     var results = [];
-    fs.readdir(dir, function(err, files)
+    fs.readdir(dir, (err, files) =>
     {
         if (err) return callback(err);
         var pending = files.length;
         if (!pending) return callback(null, results);
-        files.forEach(function(file)
+        files.forEach(file =>
         {
             file = path.resolve(dir, file);
-            fs.stat(file, function(err, stat)
+            fs.stat(file, (err, stat) =>
             {
                 if (err) throw err;
                 if (stat && stat.isDirectory())
                 {
-                    walk(file, function(err, res)
+                    walk(file, (err, res) =>
                     {
                         if (err) throw err;
                         results = results.concat(res);
