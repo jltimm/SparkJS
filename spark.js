@@ -15,7 +15,12 @@ exports.createJSONFiles = function createJSONFiles(path, callback)
         {
             if (err) throw err;
             var maps = tfidf(globalMap, fileMaps);
-            console.log(maps);
+            //TODO: add param for destination path
+            fs.writeFile('./data.json', JSON.stringify(maps), 'utf-8', (err) =>
+            {
+                if (err) throw err;
+                console.log("File successfully created!")
+            });
         });
     });
 }
@@ -29,7 +34,7 @@ exports.createJSONFiles = function createJSONFiles(path, callback)
 function tfidf(globalMap, fileMaps)
 {
     var numFiles = fileMaps.length;
-    fileMaps.forEach(file =>
+    fileMaps.forEach((file) =>
     {
         for (var key in file.fileMap)
         {
@@ -63,7 +68,7 @@ function getWordMaps(filenames, callback)
             data = data.replace(/[^\w\s]/gi, '');
             var words = data.split(' ');
             var numWords = 0;
-            words.forEach(word =>
+            words.forEach((word) =>
             {
                 if (!word)
                 {
@@ -110,7 +115,7 @@ function isTextFile(name, extensions)
     if (extensions)
     {
         var shouldAdd = false;
-        extensions.forEach(extension =>
+        extensions.forEach((extension) =>
         {
             if (extname == extension)
             {
@@ -135,7 +140,7 @@ function walk(dir, callback)
         if (err) return callback(err);
         var pending = files.length;
         if (!pending) return callback(null, results);
-        files.forEach(file =>
+        files.forEach((file) =>
         {
             file = path.resolve(dir, file);
             fs.stat(file, (err, stat) =>
