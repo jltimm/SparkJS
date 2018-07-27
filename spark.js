@@ -8,6 +8,7 @@ var path = require('path');
  */
 exports.createJSONFiles = function createJSONFiles(path, callback)
 {
+    // TODO: add check to see if file or directory before calling walk.
     walk(path, (err, files) =>
     {
         if (err) throw err;
@@ -23,6 +24,30 @@ exports.createJSONFiles = function createJSONFiles(path, callback)
             });
         });
     });
+}
+
+/**
+ * Adds a file to the JSON file (requires full path)
+ * @param {string} filepath The filepath
+ * @param {function} callback The callback
+ */
+exports.addFile = function addFile(filepath, callback)
+{
+    fs.stat(filepath, (err, stat) => 
+    {
+        if (err) throw err;
+        if (stat && stat.isDirectory())
+        {
+            walk(filepath, (err, files) => 
+            {
+                if (err) throw err;
+                
+            })
+        } else if (stat && stat.isFile() && isTextFile(filepath))
+        {
+            // TODO
+        }
+    })
 }
 
 /**
