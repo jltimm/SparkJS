@@ -5,17 +5,7 @@ var spark = require('../spark.js');
 function runTests()
 {
     // Test 1
-    var files = spark_sync.createJSONFilesSync('./text_files', true);
-    if (files.includes('./text_files/lorem.txt') && files.includes('./text_files/subdir/lorem2.txt') && files.includes('./text_files/subdir/subdir2/lorem3.txt') && files.length == 3)
-    {
-        console.log("Test 1: passed.");
-    } else
-    {
-        console.log("Test 1: failed.");
-    }
-
-    // Test 2
-    spark.createJSONFiles('./text_files', function(err, asynchFiles)
+    spark.createJSONFiles('./test/text_files', (err, asynchFiles) =>
     {
         if (err)
         {
@@ -30,6 +20,17 @@ function runTests()
                 console.log("Test 2: failed");
             }
         }
+    });
+    // Test 2
+    spark.addFile('./test/add_text_files/test2/', (err, data) =>
+    {
+        console.log("TEST 2");
+    });
+
+    // Test 3
+    spark.addFile('./test/add_text_files/test3.txt', (err, data) =>
+    {
+        console.log("TEST 3");
     });
 }
 

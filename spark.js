@@ -6,10 +6,11 @@ var path = require('path');
  * @param {stirng} path The path where the files are 
  * @param {function} callback The callback
  */
-exports.createJSONFiles = function createJSONFiles(path, callback)
+exports.createJSONFiles = function createJSONFiles(filepath, callback)
 {
     // TODO: add check to see if file or directory before calling walk.
-    walk(path, (err, files) =>
+    var dir = path.resolve(__dirname, filepath);
+    walk(dir, (err, files) =>
     {
         if (err) throw err;
         getWordMaps(files, (err, globalMap, fileMaps) =>
@@ -33,19 +34,21 @@ exports.createJSONFiles = function createJSONFiles(path, callback)
  */
 exports.addFile = function addFile(filepath, callback)
 {
-    fs.stat(filepath, (err, stat) => 
+    var dir = path.resolve(__dirname, filepath);
+    fs.stat(dir, (err, stat) => 
     {
         if (err) throw err;
         if (stat && stat.isDirectory())
         {
-            walk(filepath, (err, files) => 
+            walk(dir, (err, files) => 
             {
                 if (err) throw err;
-                
+                console.log(files);
             })
         } else if (stat && stat.isFile() && isTextFile(filepath))
         {
             // TODO
+            console.log("IS FILE");
         }
     })
 }
