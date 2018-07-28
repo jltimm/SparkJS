@@ -1,6 +1,18 @@
 var fs = require('fs');
 var path = require('path');
 
+global.dataDirectory = "";
+
+exports.setDataDirectory = function setDataDirectory(filepath)
+{
+    global.dataDirectory = filepath;
+}
+
+exports.getDataDirectory = function getDataDirectory()
+{
+    return global.dataDirectory;
+}
+
 /**
  * Creates JSON files with tfidf representation from text files asynchronously.
  * @param {stirng} path The path where the files are 
@@ -83,6 +95,7 @@ function tfidf(globalMap, fileMaps)
  */
 function getWordMaps(filenames, callback)
 {
+    // TODO: check if global map already exists
     var globalMap = {};
     var fileMaps = [];
     var pending = filenames.length;

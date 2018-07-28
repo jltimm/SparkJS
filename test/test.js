@@ -4,6 +4,17 @@ var spark = require('../spark.js');
 // These are going to fail until I figure out a way to test without hardcoding the full path
 function runTests()
 {
+
+    // Test data directory
+    spark.setDataDirectory("test");
+    if (spark.getDataDirectory() == "test")
+    {
+        console.log("Test passed.");
+    } else
+    {
+        console.log("Test failed.")
+    }
+
     // Test 1
     spark.createJSONFiles('./test/text_files', (err, asynchFiles) =>
     {
@@ -32,6 +43,8 @@ function runTests()
     {
         console.log("TEST 3");
     });
+
+
 }
 
 runTests();
