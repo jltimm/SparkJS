@@ -43,6 +43,27 @@ Spark.prototype.addDocument = function(data, id)
 }
 
 /**
+ * Adds a file from disk
+ * @param {string} filename 
+ */
+Spark.prototype.addFileSync = function(filename)
+{
+    if (!isTextFile(filename))
+    {
+        console.log("Warning: " + filename + " not added because it is not a text file.");
+        return;
+    }
+    try
+    {
+        var data = fs.readFileSync(filename, 'utf8');
+        this.addDocument(data, path.basename(filename));
+    } catch(err)
+    {
+        console.error(err);
+    }
+}
+
+/**
  * Creates TFIDF from word maps.
  * http://www.tfidf.com/
  * @param {dictionary} globalMap The global word map
@@ -66,28 +87,6 @@ Spark.prototype.tfidf = function()
         tfidfMaps.push({id: documents.id, tfidf: tfidfMap});
     });
     return tfidfMaps;
-}
-
-/**
- * Adds a file from disk
- * @param {string} filename 
- */
-Spark.prototype.addFileSync = function(filename)
-{
-    if (!isTextFile(filename))
-    {
-        console.log("Warning: " + filename + " not added because it is not a text file.");
-        return;
-    }
-    try
-    {
-        var data = fs.readFileSync(filename, 'utf8');
-        this.addDocument(data, path.basename(filename));
-    } catch(err)
-    {
-        console.error(err);
-    }
-    
 }
 
 /**
@@ -116,3 +115,8 @@ function isTextFile(name, extensions)
         return shouldAdd;
     }
 }
+
+// TODO: addDirectory
+// TODO: updateFile
+// TODO: cosine similarity
+// TODO: document comparisons
