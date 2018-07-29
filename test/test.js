@@ -6,14 +6,14 @@ function runTests()
 {
 
     // Test data directory
-    spark.setDataDirectory("");
-    if (spark.getDataDirectory() == "test")
-    {
-        console.log("Test passed.");
-    } else
-    {
-        console.log("Test failed.")
-    }
+    spark.setDataDirectory("/Users/Jacob/Documents/github/SparkJS/test/data");
+    // if (spark.getDataDirectory() == "test")
+    // {
+    //     console.log("Test passed.");
+    // } else
+    // {
+    //     console.log("Test failed.")
+    // }
 
     // Test 1
     spark.createJSONFiles('./test/text_files', (err, asynchFiles) =>

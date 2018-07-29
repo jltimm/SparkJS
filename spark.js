@@ -11,51 +11,6 @@ global.dataDirectory = '';
  */
 global.dataFileName = 'data.json';
 
-function getDataFileName()
-{
-    return global.dataFileName;
-}
-
-function setDataFileName(filename)
-{
-    global.dataFileName = filename;
-}
-
-/**
- * Sets the data directory
- * @param {string} filepath Where the data directory lives
- */
-exports.setDataDirectory = function setDataDirectory(filepath)
-{
-    fs.readdir(filepath, (err, files) =>
-    {
-        if (err) throw err;
-        var i = 1;
-        var filename = getDataFileName();
-        files.forEach(function(file)
-        {
-            if (file == filename)
-            {
-                var splitFilename = file.split('.');
-                var newFilename = splitFilename[0] + '-' + i + '.' + splitFilename[1];
-                filename = newFilename;
-                i++;
-            }
-        });
-        setDataFileName(filename);
-    });
-    global.dataDirectory = filepath;
-}
-
-/**
- * Retrieves the data directory.
- * @returns The data directory
- */
-exports.getDataDirectory = function getDataDirectory()
-{
-    return global.dataDirectory;
-}
-
 /**
  * Creates JSON files with tfidf representation from text files asynchronously.
  * @param {stirng} path The path where the files are 
@@ -73,13 +28,65 @@ exports.createJSONFiles = function createJSONFiles(filepath, callback)
             if (err) throw err;
             var maps = tfidf(globalMap, fileMaps);
             //TODO: add param for destination path
-            fs.writeFile('./data.json', JSON.stringify(maps), 'utf-8', (err) =>
+            var dataDirectory = getDataDirectory();
+            if (dataDirectory)
             {
-                if (err) throw err;
-                console.log("File successfully created!")
-            });
+                var output = path.resolve(dataDirectory, getDataFileName());
+                fs.writeFile(output, JSON.stringify(maps), 'utf-8', (err) =>
+                {
+                    if (err) throw err;
+                    console.log("File successfully created!")
+                });
+            }
         });
     });
+}
+
+/**
+ * Gets the data file name
+ * @returns The global data file name
+ */
+function getDataFileName()
+{
+    return global.dataFileName;
+}
+
+/**
+ * Sets the data file name
+ * @param {string} filename The filename
+ */
+exports.setDataFileName = function setDataFileName(filename)
+{
+    global.dataFileName = filename;
+}
+
+/**
+ * Sets the data directory
+ * @param {string} filepath Where the data directory lives
+ */
+exports.setDataDirectory = function setDataDirectory(filepath)
+{
+    fs.readdir(filepath, (err, files) =>
+    {
+        if (err) throw err;
+        var i = 1;
+        filename = getDataFileName();
+        if (files.includes(filename))
+        {
+            throw Error("ERROR: " + filename + " already exists in " + filepath);
+        }
+        this.setDataFileName(filename);
+    });
+    global.dataDirectory = filepath;
+}
+
+/**
+ * Retrieves the data directory.
+ * @returns The data directory
+ */
+function getDataDirectory()
+{
+    return global.dataDirectory;
 }
 
 /**
