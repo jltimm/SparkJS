@@ -12,34 +12,42 @@ global.dataDirectory = '';
 global.dataFileName = 'data.json';
 
 /**
- * Creates JSON files with tfidf representation from text files asynchronously.
- * @param {stirng} path The path where the files are 
+ * Creates TFIDF representation of a text file (requires full path)
+ * @param {string} filepath The filepath
  * @param {function} callback The callback
  */
-exports.createJSONFiles = function createJSONFiles(filepath, callback)
+exports.addFile = function addFile(filepath, callback)
 {
-    // TODO: add check to see if file or directory before calling walk.
     var dir = path.resolve(__dirname, filepath);
-    walk(dir, (err, files) =>
+    fs.stat(dir, (err, stat) => 
     {
         if (err) throw err;
-        getWordMaps(files, (err, globalMap, fileMaps) =>
+        if (stat && stat.isDirectory())
         {
-            if (err) throw err;
-            var maps = tfidf(globalMap, fileMaps);
-            //TODO: add param for destination path
-            var dataDirectory = getDataDirectory();
-            if (dataDirectory)
+            var dir = path.resolve(__dirname, filepath);
+            walk(dir, (err, files) =>
             {
-                var output = path.resolve(dataDirectory, getDataFileName());
-                fs.writeFile(output, JSON.stringify(maps), 'utf-8', (err) =>
+                if (err) throw err;
+                getWordMaps(files, (err, globalMap, fileMaps) =>
                 {
                     if (err) throw err;
-                    console.log("File successfully created!")
+                    var maps = tfidf(globalMap, fileMaps);
+                    var dataDirectory = getDataDirectory();
+                    if (dataDirectory)
+                    {
+                        var output = path.resolve(dataDirectory, getDataFileName());
+                        fs.writeFile(output, JSON.stringify(maps), 'utf-8', (err) =>
+                        {
+                            callback(err);
+                        });
+                    }
                 });
-            }
-        });
-    });
+            });
+        } else if (stat && stat.isFile() && isTextFile(filepath))
+        {
+            // TODO
+        }
+    })
 }
 
 /**
@@ -69,12 +77,15 @@ exports.setDataDirectory = function setDataDirectory(filepath)
     fs.readdir(filepath, (err, files) =>
     {
         if (err) throw err;
-        var i = 1;
         filename = getDataFileName();
         if (files.includes(filename))
         {
             throw Error("ERROR: " + filename + " already exists in " + filepath);
         }
+        fs.writeFile(path.resolve(filepath, filename), '{}', (err) => 
+        {
+            if (err) throw err;
+        })
         this.setDataFileName(filename);
     });
     global.dataDirectory = filepath;
@@ -87,30 +98,6 @@ exports.setDataDirectory = function setDataDirectory(filepath)
 function getDataDirectory()
 {
     return global.dataDirectory;
-}
-
-/**
- * Adds a file to the JSON file (requires full path)
- * @param {string} filepath The filepath
- * @param {function} callback The callback
- */
-exports.addFile = function addFile(filepath, callback)
-{
-    var dir = path.resolve(__dirname, filepath);
-    fs.stat(dir, (err, stat) => 
-    {
-        if (err) throw err;
-        if (stat && stat.isDirectory())
-        {
-            walk(dir, (err, files) => 
-            {
-                if (err) throw err;
-            })
-        } else if (stat && stat.isFile() && isTextFile(filepath))
-        {
-            // TODO
-        }
-    })
 }
 
 /**
@@ -143,8 +130,7 @@ function tfidf(globalMap, fileMaps)
  */
 function getWordMaps(filenames, callback)
 {
-    // TODO: check if global map already exists
-    var globalMap = {};
+    var globalMap = JSON.parse(fs.readFileSync(path.resolve(getDataDirectory(), getDataFileName()), 'utf8')); // TODO: Consider moving to async
     var fileMaps = [];
     var pending = filenames.length;
     filenames.forEach((filename) =>
