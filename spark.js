@@ -69,6 +69,28 @@ Spark.prototype.tfidf = function()
 }
 
 /**
+ * Adds a file from disk
+ * @param {string} filename 
+ */
+Spark.prototype.addFileSync = function(filename)
+{
+    if (!isTextFile(filename))
+    {
+        console.log("Warning: " + filename + " not added because it is not a text file.");
+        return;
+    }
+    try
+    {
+        var data = fs.readFileSync(filename, 'utf8');
+        this.addDocument(data, path.basename(filename));
+    } catch(err)
+    {
+        console.error(err);
+    }
+    
+}
+
+/**
  * Checks if the filename is a text file or not
  * @param {string} name The filename 
  * @param {array} extensions Addition extensions
