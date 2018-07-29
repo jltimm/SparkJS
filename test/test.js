@@ -6,7 +6,7 @@ function runTests()
 {
 
     // Test data directory
-    spark.setDataDirectory("test");
+    spark.setDataDirectory("");
     if (spark.getDataDirectory() == "test")
     {
         console.log("Test passed.");

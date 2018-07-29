@@ -1,13 +1,56 @@
 var fs = require('fs');
 var path = require('path');
 
-global.dataDirectory = "";
+/**
+ * The data directory
+ */
+global.dataDirectory = '';
 
+/**
+ * The name of the data file. Default is data.json
+ */
+global.dataFileName = 'data.json';
+
+function getDataFileName()
+{
+    return global.dataFileName;
+}
+
+function setDataFileName(filename)
+{
+    global.dataFileName = filename;
+}
+
+/**
+ * Sets the data directory
+ * @param {string} filepath Where the data directory lives
+ */
 exports.setDataDirectory = function setDataDirectory(filepath)
 {
+    fs.readdir(filepath, (err, files) =>
+    {
+        if (err) throw err;
+        var i = 1;
+        var filename = getDataFileName();
+        files.forEach(function(file)
+        {
+            if (file == filename)
+            {
+                var splitFilename = file.split('.');
+                var newFilename = splitFilename[0] + '-' + i + '.' + splitFilename[1];
+                filename = newFilename;
+                i++;
+            }
+        });
+        setDataFileName(filename);
+    });
     global.dataDirectory = filepath;
 }
 
+/**
+ * Retrieves the data directory.
+ * @returns The data directory
+ */
 exports.getDataDirectory = function getDataDirectory()
 {
     return global.dataDirectory;
@@ -55,12 +98,10 @@ exports.addFile = function addFile(filepath, callback)
             walk(dir, (err, files) => 
             {
                 if (err) throw err;
-                console.log(files);
             })
         } else if (stat && stat.isFile() && isTextFile(filepath))
         {
             // TODO
-            console.log("IS FILE");
         }
     })
 }
