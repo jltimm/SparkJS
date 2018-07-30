@@ -4,6 +4,8 @@ var path = require('path');
 function Spark() {
     this._documents = [];
     this._globalMap = {};
+    this._model = 'bag';
+    this._n = 3;
 }
 
 module.exports = Spark;
@@ -14,26 +16,26 @@ Spark.prototype.addDocument = function(data, id) {
     }
     var documentMap = {};
     data = data.replace(/[^\w\s]/gi, '');
-    var words = data.split(' ');
-    var numWords = 0;
-    words.forEach((word) => {
-        if (!word) {
+    var tokens = getTokens(data, this._model);
+    var numTokens = 0;
+    tokens.forEach((token) => {
+        if (!token) {
             return;
         }
-        word = word.toLowerCase();
-        numWords++;
-        if (documentMap[word]) {
-            documentMap[word] = documentMap[word] + 1;
+        token = token.toLowerCase();
+        numTokens++;
+        if (documentMap[token]) {
+            documentMap[token] = documentMap[token] + 1;
         } else {
-            documentMap[word] = 1;
-            if (this._globalMap[word]) {
-                this._globalMap[word] = this._globalMap[word] + 1;
+            documentMap[token] = 1;
+            if (this._globalMap[token]) {
+                this._globalMap[token] = this._globalMap[token] + 1;
             } else {
-                this._globalMap[word] = 1;
+                this._globalMap[token] = 1;
             }
         }
     });
-    this._documents.push({id: id, documentMap: documentMap, numWords: numWords});
+    this._documents.push({id: id, model: this._model, documentMap: documentMap, numTokens: numTokens});
 }
 
 /**
@@ -54,9 +56,9 @@ Spark.prototype.addFileSync = function(filename) {
 }
 
 /**
- * Creates TFIDF from word maps.
+ * Creates TFIDF from token maps.
  * http://www.tfidf.com/
- * @param {dictionary} globalMap The global word map
+ * @param {dictionary} globalMap The global token map
  * @param {array} fileMaps The list of file mapss
  */
 Spark.prototype.tfidf = function() {
@@ -65,12 +67,12 @@ Spark.prototype.tfidf = function() {
     this._documents.forEach((documents) => {
         var tfidfMap = {};
         for (var key in documents.documentMap) {
-            var tf = documents.documentMap[key] / documents.numWords;
+            var tf = documents.documentMap[key] / documents.numTokens;
             var idf = numFiles / this._globalMap[key];
             var tfidf = tf * idf;
             tfidfMap[key] = tfidf;
         }
-        tfidfMaps.push({id: documents.id, tfidf: tfidfMap});
+        tfidfMaps.push({id: documents.id, model: documents.model, tfidf: tfidfMap});
     });
     return tfidfMaps;
 }
@@ -94,6 +96,38 @@ Spark.prototype.removeDocument = function(id) {
         delete this._documents[i];
         this._documents.splice(i, 1);
         break;
+    }
+}
+
+/**
+ * Sets model that is used for documents
+ * @param {string} model The model
+ */
+Spark.prototype.setModel = function(model) {
+    // TODO: add list of models, check against them
+    this._model = model;
+}
+
+/**
+ * Sets n that's used for ngram
+ * @param {integer} n The n used
+ */
+Spark.prototype.setN = function(n) {
+    this._n = n;
+}
+
+/**
+ * Parses the data and splits it into tokens
+ * @param {string} data The data in string form
+ * @param {*} model 
+ */
+function getTokens(data, model) {
+    if (model.toLowerCase() === 'bag') {
+        return data.split(' ');
+    } else if (model.toLowerCase() === 'ngram-char') {
+        // TODO
+    } else if (mode.toLowerCase() === 'ngram-word') {
+        // TODO
     }
 }
 
@@ -136,7 +170,6 @@ function generateUniqueID(documents) {
     }
 }
 // TODO: style fixes
-// TODO: rename word to tokens
 // TODO: addDirectory
 // TODO: ngram functionality
 // TODO: cosine similarity
