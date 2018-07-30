@@ -3,15 +3,18 @@ var path = require('path');
 
 function Spark()
 {
-    this.documents = [];
-    this.globalMap = {};
+    this._documents = [];
+    this._globalMap = {};
 }
 
 module.exports = Spark;
 
 Spark.prototype.addDocument = function(data, id)
 {
-    //TODO: add check for ID
+    if (!id)
+    {
+        id = generateUniqueID(this._documents);
+    }
     var documentMap = {};
     data = data.replace(/[^\w\s]/gi, '');
     var words = data.split(' ');
@@ -30,16 +33,16 @@ Spark.prototype.addDocument = function(data, id)
         } else
         {
             documentMap[word] = 1;
-            if (this.globalMap[word])
+            if (this._globalMap[word])
             {
-                this.globalMap[word] = this.globalMap[word] + 1;
+                this._globalMap[word] = this._globalMap[word] + 1;
             } else
             {
-                this.globalMap[word] = 1;
+                this._globalMap[word] = 1;
             }
         }
     });
-    this.documents.push({id: id, documentMap: documentMap, numWords: numWords});
+    this._documents.push({id: id, documentMap: documentMap, numWords: numWords});
 }
 
 /**
@@ -72,21 +75,47 @@ Spark.prototype.addFileSync = function(filename)
 Spark.prototype.tfidf = function()
 {
     var tfidfMaps = [];
-    var numFiles = this.documents.length;    
-    this.documents.forEach((documents) =>
+    var numFiles = this._documents.length;    
+    this._documents.forEach((documents) =>
     {
         var tfidfMap = {};
         for (var key in documents.documentMap)
         {
             var tf = documents.documentMap[key] / documents.numWords;
-            var idf = numFiles / this.globalMap[key];
+            var idf = numFiles / this._globalMap[key];
             var tfidf = tf * idf;
-            console.log(tfidf);
             tfidfMap[key] = tfidf;
         }
         tfidfMaps.push({id: documents.id, tfidf: tfidfMap});
     });
     return tfidfMaps;
+}
+
+/**
+ * Removes a document from the list, and removes values from the global map.
+ * @param {id} id The ID of the document to be removed.
+ */
+Spark.prototype.removeDocument = function(id)
+{
+    for (var i = 0; i < this._documents.length; i++)
+    {
+        if (this._documents[i].id != id)
+        {
+            continue;
+        }
+        for (var key in this._documents[i].documentMap)
+        {
+            //delete documents[i].documentMap[key];
+            this._globalMap[key] = this._globalMap[key] - this._documents[i].documentMap[key];
+            if (this._globalMap[key] == 0)
+            {
+                delete this._globalMap[key];
+            }
+        }
+        delete this._documents[i];
+        this._documents.splice(i, 1);
+        break;
+    }
 }
 
 /**
@@ -116,7 +145,27 @@ function isTextFile(name, extensions)
     }
 }
 
+/**
+ * Generates a unique ID
+ * @param {array} documents The array of documents
+ */
+function generateUniqueID(documents)
+{
+    var ids = [];
+    documents.forEach((document) => 
+    {
+        ids.push(document.id);
+    });
+    while (true)
+    {
+        var id = Math.floor(Math.random() * Math.floor(ids.length * 10));
+        if (!ids.includes(id))
+        {
+            return id;
+        }
+    }
+}
+
 // TODO: addDirectory
-// TODO: updateFile
 // TODO: cosine similarity
 // TODO: document comparisons

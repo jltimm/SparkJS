@@ -8,8 +8,10 @@ function runTests()
     spark.addDocument('hello there', 1);
     spark.addDocument('hiiiiii', 2);
     spark.addDocument('hello there', 3);
+    spark.addDocument('test');
     spark.addFileSync('text_files/lorem.txt');
     var tfidf = spark.tfidf();
+    console.log(tfidf);
 }
 
 runTests();
