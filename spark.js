@@ -9,29 +9,23 @@ function Spark()
 
 module.exports = Spark;
 
-Spark.prototype.addDocument = function(data, id)
-{
-    if (!id)
-    {
+Spark.prototype.addDocument = function(data, id) {
+    if (!id) {
         id = generateUniqueID(this._documents);
     }
     var documentMap = {};
     data = data.replace(/[^\w\s]/gi, '');
     var words = data.split(' ');
     var numWords = 0;
-    words.forEach((word) => 
-    {
-        if (!word)
-        {
+    words.forEach((word) => {
+        if (!word) {
             return;
         }
         word = word.toLowerCase();
         numWords++;
-        if (documentMap[word])
-        {
+        if (documentMap[word]) {
             documentMap[word] = documentMap[word] + 1;
-        } else
-        {
+        } else {
             documentMap[word] = 1;
             if (this._globalMap[word])
             {
@@ -49,8 +43,7 @@ Spark.prototype.addDocument = function(data, id)
  * Adds a file from disk
  * @param {string} filename 
  */
-Spark.prototype.addFileSync = function(filename)
-{
+Spark.prototype.addFileSync = function(filename) {xw
     if (!isTextFile(filename))
     {
         console.log("Warning: " + filename + " not added because it is not a text file.");
@@ -107,7 +100,7 @@ Spark.prototype.removeDocument = function(id)
         {
             //delete documents[i].documentMap[key];
             this._globalMap[key] = this._globalMap[key] - this._documents[i].documentMap[key];
-            if (this._globalMap[key] == 0)
+            if (this._globalMap[key] === 0)
             {
                 delete this._globalMap[key];
             }
@@ -126,7 +119,7 @@ Spark.prototype.removeDocument = function(id)
 function isTextFile(name, extensions)
 {
     var extname = path.extname(name);
-    if (extname == '.txt' || extname == '.doc' || extname == '.docx')
+    if (extname === '.txt' || extname === '.doc' || extname === '.docx')
     {
         return true;
     }
@@ -135,7 +128,7 @@ function isTextFile(name, extensions)
         var shouldAdd = false;
         extensions.forEach((extension) =>
         {
-            if (extname == extension)
+            if (extname === extension)
             {
                 shouldAdd = true;
                 return true;
@@ -167,5 +160,6 @@ function generateUniqueID(documents)
 }
 
 // TODO: addDirectory
+// TODO: ngram functionality
 // TODO: cosine similarity
 // TODO: document comparisons
