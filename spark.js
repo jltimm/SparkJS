@@ -10,13 +10,18 @@ function Spark() {
 
 module.exports = Spark;
 
+/**
+ * 
+ * @param {string} data The data in string format
+ * @param {string} id The id
+ */
 Spark.prototype.addDocument = function(data, id) {
     if (!id) {
         id = generateUniqueID(this._documents);
     }
     var documentMap = {};
     data = data.replace(/[^\w\s]/gi, '');
-    var tokens = getTokens(data, this._model);
+    var tokens = getTokens(data, this._model, this._n);
     var numTokens = 0;
     tokens.forEach((token) => {
         if (!token) {
@@ -87,7 +92,6 @@ Spark.prototype.removeDocument = function(id) {
             continue;
         }
         for (var key in this._documents[i].documentMap) {
-            //delete documents[i].documentMap[key];
             this._globalMap[key] = this._globalMap[key] - this._documents[i].documentMap[key];
             if (this._globalMap[key] === 0) {
                 delete this._globalMap[key];
@@ -105,7 +109,7 @@ Spark.prototype.removeDocument = function(id) {
  */
 Spark.prototype.setModel = function(model) {
     // TODO: add list of models, check against them
-    this._model = model;
+    this._model = model.toLowerCase();
 }
 
 /**
@@ -121,11 +125,28 @@ Spark.prototype.setN = function(n) {
  * @param {string} data The data in string form
  * @param {*} model 
  */
-function getTokens(data, model) {
+function getTokens(data, model, n) {
     if (model.toLowerCase() === 'bag') {
         return data.split(' ');
     } else if (model.toLowerCase() === 'ngram-char') {
-        // TODO
+        var ngramArray = [];
+        var ngram = '';
+        for (var i = 0; i < data.length; i++) {
+            if (i == data.length-1) {
+                if (data[i]) {
+                    ngram += data[i];
+                }
+                ngramArray.push(ngram);
+            }
+            if (data[i]) {
+                ngram += data[i];
+                if (ngram.length == n) {
+                    ngramArray.push(ngram);
+                    ngram = '';
+                }
+            }
+        }
+        return ngramArray;
     } else if (mode.toLowerCase() === 'ngram-word') {
         // TODO
     }
@@ -169,9 +190,11 @@ function generateUniqueID(documents) {
         }
     }
 }
-// TODO: style fixes
+
 // TODO: addDirectory
 // TODO: ngram functionality
 // TODO: cosine similarity
-// TODO: document comparisons
+// TODO: document comparisons i.e. nearest neighbor
 // TODO: search for synonyms
+// TODO: write to file, clear cache
+// TODO: remove numbers boolean

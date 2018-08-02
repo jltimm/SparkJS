@@ -4,7 +4,7 @@ var Spark = require('../spark.js');
 function runTests() {
     // TODO: actually add tests
     var spark = new Spark();
-    
+    spark.setModel('ngram-char');
     spark.addDocument('hello there', 1);
     spark.addDocument('hiiiiii', 2);
     spark.addDocument('hello there', 3);
