@@ -27,7 +27,7 @@ Spark.prototype.addDocument = function(data, id) {
         if (!token) {
             return;
         }
-        token = token.toLowerCase();
+        token = token.toString().toLowerCase();
         numTokens++;
         if (documentMap[token]) {
             documentMap[token] = documentMap[token] + 1;
@@ -137,6 +137,7 @@ function getTokens(data, model, n) {
                     ngram += data[i];
                 }
                 ngramArray.push(ngram);
+                break;
             }
             if (data[i]) {
                 ngram += data[i];
@@ -147,8 +148,42 @@ function getTokens(data, model, n) {
             }
         }
         return ngramArray;
-    } else if (mode.toLowerCase() === 'ngram-word') {
-        // TODO
+    } else if (model.toLowerCase() === 'ngram-word') {
+        var splitData = data.split(' ');
+        console.log(splitData);
+        var ngramArray = [];
+        var ngram = [];
+        for (var i = 0; i < splitData.length; i++) {
+            if (i == splitData.length-1) {
+                if (splitData[i]) {
+                    ngram.push(splitData[i]);
+                }
+                var ngramStr = '';
+                for (var j = 0; j < ngram.length; j++) {
+                    ngramStr += ngram[j];
+                    if (j != ngram.length-1) {
+                        ngramStr += ' ';
+                    }
+                }
+                ngramArray.push(ngramStr);
+                break;
+            }
+            if (splitData[i]) {
+                ngram.push(splitData[i]);
+                if (ngram.length == n) {
+                    var ngramStr = '';
+                    for (var j = 0; j < n; j++) {
+                        ngramStr += ngram[j];
+                        if (j != n-1) {
+                            ngramStr += ' ';
+                        }
+                    }
+                    ngramArray.push(ngramStr);
+                    ngram = [];
+                }
+            }
+        }
+        return ngramArray;
     }
 }
 
@@ -192,7 +227,6 @@ function generateUniqueID(documents) {
 }
 
 // TODO: addDirectory
-// TODO: ngram functionality
 // TODO: cosine similarity
 // TODO: document comparisons i.e. nearest neighbor
 // TODO: search for synonyms
