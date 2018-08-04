@@ -235,4 +235,4 @@ function generateUniqueID(documents) {
 // TODO: document comparisons i.e. nearest neighbor
 // TODO: search for synonyms
 // TODO: write to file, clear cache
-// TODO: remove numbers boolean
+// TODO: remove stop words
