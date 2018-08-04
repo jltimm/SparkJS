@@ -14,13 +14,17 @@ module.exports = Spark;
  * 
  * @param {string} data The data in string format
  * @param {string} id The id
+ * @param {string} shouldRemoveNumbers Should numbers be removed from the document
  */
-Spark.prototype.addDocument = function(data, id) {
+Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
     if (!id) {
         id = generateUniqueID(this._documents);
     }
     var documentMap = {};
     data = data.replace(/[^\w\s]/gi, '');
+    if (shouldRemoveNumbers) {
+        data = data.replace(/[0-9]/g, '');
+    }
     var tokens = getTokens(data, this._model, this._n);
     var numTokens = 0;
     tokens.forEach((token) => {
