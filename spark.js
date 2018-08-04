@@ -6,6 +6,7 @@ function Spark() {
     this._globalMap = {};
     this._model = 'bag';
     this._n = 3;
+    this._stopWords = [];
 }
 
 module.exports = Spark;
@@ -28,7 +29,7 @@ Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
     var tokens = getTokens(data, this._model, this._n);
     var numTokens = 0;
     tokens.forEach((token) => {
-        if (!token) {
+        if (!token || (this._stopWords.indexOf(token) > -1)) {
             return;
         }
         token = token.toString().toLowerCase();
@@ -124,12 +125,22 @@ Spark.prototype.setN = function(n) {
     this._n = n;
 }
 
+Spark.prototype.initStopWords = function() {
+    // Add more stop words, consider moving to map instead of array
+    this._stopWords = ['I', 'a', 'about', 'an', 'are', 'as',
+                      'at', 'be', 'by', 'for', 'from', 'how',
+                      'in', 'is', 'it', 'of', 'on', 'or', 'that',
+                      'the', 'this', 'to', 'was', 'what', 'when',
+                      'where', 'who', 'will', 'with', 'the'];
+}
+
 /**
  * Parses the data and splits it into tokens
  * @param {string} data The data in string form
  * @param {*} model 
  */
 function getTokens(data, model, n) {
+    //TODO: consider splitting into different functions for readability
     if (model.toLowerCase() === 'bag') {
         return data.split(' ');
     } else if (model.toLowerCase() === 'ngram-char') {
