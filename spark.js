@@ -155,7 +155,6 @@ Spark.prototype.cosineSimilarity = function(doc1, doc2) {
         }
     }
     var score = topScore / (Math.sqrt(bottomScoreA) * Math.sqrt(bottomScoreB));
-    console.log(score);
     return score;
 }
 

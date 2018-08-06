@@ -13,7 +13,6 @@ function runTests() {
     spark.addDocument('test');
     spark.addFileSync('text_files/lorem.txt');
     var tfidf = spark.tfidf();
-    console.log(tfidf);
     spark.cosineSimilarity(tfidf[0], tfidf[2]);
 }
 
