@@ -125,6 +125,9 @@ Spark.prototype.setN = function(n) {
     this._n = n;
 }
 
+/**
+ * Initializes the stop words.
+ */
 Spark.prototype.initStopWords = function() {
     // Add more stop words, consider moving to map instead of array
     this._stopWords = ['I', 'a', 'about', 'an', 'are', 'as',
@@ -132,6 +135,28 @@ Spark.prototype.initStopWords = function() {
                       'in', 'is', 'it', 'of', 'on', 'or', 'that',
                       'the', 'this', 'to', 'was', 'what', 'when',
                       'where', 'who', 'will', 'with', 'the'];
+}
+
+/**
+ * Compares two documents, returns cosine similarity score
+ */
+Spark.prototype.cosineSimilarity = function(doc1, doc2) {
+    // TODO: Optimize
+    var topScore = 0.0;
+    var bottomScoreA = 0.0;
+    var bottomScoreB = 0.0;
+    for (var key1 in doc1.tfidf) {
+        bottomScoreA += (doc1.tfidf[key1] + doc1.tfidf[key1]);
+        for (var key2 in doc2.tfidf) {
+            if (key1 == key2) {
+                topScore += (doc1.tfidf[key1] * doc2.tfidf[key2]);
+            }
+            bottomScoreB += (doc2.tfidf[key2] * doc2.tfidf[key2]);
+        }
+    }
+    var score = topScore / (Math.sqrt(bottomScoreA) * Math.sqrt(bottomScoreB));
+    console.log(score);
+    return score;
 }
 
 /**
@@ -165,7 +190,6 @@ function getTokens(data, model, n) {
         return ngramArray;
     } else if (model.toLowerCase() === 'ngram-word') {
         var splitData = data.split(' ');
-        console.log(splitData);
         var ngramArray = [];
         var ngram = [];
         for (var i = 0; i < splitData.length; i++) {
@@ -242,8 +266,6 @@ function generateUniqueID(documents) {
 }
 
 // TODO: addDirectory
-// TODO: cosine similarity
 // TODO: document comparisons i.e. nearest neighbor
 // TODO: search for synonyms
 // TODO: write to file, clear cache
-// TODO: remove stop words
