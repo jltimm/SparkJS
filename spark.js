@@ -79,7 +79,7 @@ Spark.prototype.tfidf = function() {
         var tfidfMap = {};
         for (var key in documents.documentMap) {
             var tf = documents.documentMap[key] / documents.numTokens;
-            var idf = numFiles / this._globalMap[key];
+            var idf = Math.log(numFiles / this._globalMap[key]);
             var tfidf = tf * idf;
             tfidfMap[key] = tfidf;
             score += (tfidf * tfidf);
@@ -115,8 +115,12 @@ Spark.prototype.removeDocument = function(id) {
  * @param {string} model The model
  */
 Spark.prototype.setModel = function(model) {
-    // TODO: add list of models, check against them
-    this._model = model.toLowerCase();
+    var modelLowerCase = model.toLowerCase();
+    if (modelLowerCase === 'bag' || modelLowerCase === 'ngram-char' || modelLowerCase == 'ngram-word') {
+        this._model = model.toLowerCase();
+    } else {
+        console.warn("WARNING: " + model + " is not a valid model. Model will not be changed. Valid models are: 'bag', 'ngram-char', and 'ngram-word'");
+    }
 }
 
 /**
@@ -124,7 +128,11 @@ Spark.prototype.setModel = function(model) {
  * @param {integer} n The n used
  */
 Spark.prototype.setN = function(n) {
-    this._n = n;
+    if (Number.isInteger(n) && n > 0) {
+        this._n = n;
+    } else {
+        console.warn("WARNING: " + n + " is either not a valid integer or less than 0. n will not be changed.");
+    }
 }
 
 /**

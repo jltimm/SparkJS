@@ -5,15 +5,15 @@ function runTests() {
     // TODO: actually add tests
     var spark = new Spark();
     spark.initStopWords();
-    //spark.setModel('ngram-word');
-    //spark.setN(2);
+    spark.setModel('ngram-word');
+    spark.setN(0);
     spark.addDocument('hello there', 1);
     spark.addDocument('hiiiiii', 2);
     spark.addDocument('hello there', 3);
     spark.addDocument('test');
     spark.addFileSync('text_files/lorem.txt');
     var tfidf = spark.tfidf();
-    spark.cosineSimilarity(tfidf[0], tfidf[1]);
+    console.log(spark.cosineSimilarity(tfidf[0], tfidf[2]));
 }
 
 runTests();
