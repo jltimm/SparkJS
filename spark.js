@@ -73,16 +73,18 @@ Spark.prototype.addFileSync = function(filename) {
  */
 Spark.prototype.tfidf = function() {
     var tfidfMaps = [];
-    var numFiles = this._documents.length;    
+    var numFiles = this._documents.length;   
     this._documents.forEach((documents) => {
+        var score = 0.0;
         var tfidfMap = {};
         for (var key in documents.documentMap) {
             var tf = documents.documentMap[key] / documents.numTokens;
             var idf = numFiles / this._globalMap[key];
             var tfidf = tf * idf;
             tfidfMap[key] = tfidf;
+            score += (tfidf * tfidf);
         }
-        tfidfMaps.push({id: documents.id, model: documents.model, tfidf: tfidfMap});
+        tfidfMaps.push({id: documents.id, model: documents.model, tfidf: tfidfMap, score: score});
     });
     return tfidfMaps;
 }
@@ -141,20 +143,13 @@ Spark.prototype.initStopWords = function() {
  * Compares two documents, returns cosine similarity score
  */
 Spark.prototype.cosineSimilarity = function(doc1, doc2) {
-    // TODO: Optimize
     var topScore = 0.0;
-    var bottomScoreA = 0.0;
-    var bottomScoreB = 0.0;
-    for (var key1 in doc1.tfidf) {
-        bottomScoreA += (doc1.tfidf[key1] + doc1.tfidf[key1]);
-        for (var key2 in doc2.tfidf) {
-            if (key1 == key2) {
-                topScore += (doc1.tfidf[key1] * doc2.tfidf[key2]);
-            }
-            bottomScoreB += (doc2.tfidf[key2] * doc2.tfidf[key2]);
+    for (var key in doc1.tfidf) {
+        if (key in doc2.tfidf) {
+            topScore += (doc1.tfidf[key] * doc2.tfidf[key]);
         }
     }
-    var score = topScore / (Math.sqrt(bottomScoreA) * Math.sqrt(bottomScoreB));
+    var score = topScore / (Math.sqrt(doc1.score) * Math.sqrt(doc2.score));
     return score;
 }
 
@@ -265,6 +260,7 @@ function generateUniqueID(documents) {
 }
 
 // TODO: addDirectory
+// TODO: cache scores
 // TODO: document comparisons i.e. nearest neighbor
 // TODO: search for synonyms
 // TODO: write to file, clear cache
