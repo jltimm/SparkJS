@@ -139,7 +139,7 @@ Spark.prototype.setN = function(n) {
  * Initializes the stop words.
  */
 Spark.prototype.initStopWords = function() {
-    // Add more stop words, consider moving to map instead of array
+    // TODO: Add more stop words, consider moving to map instead of array
     this._stopWords = ['I', 'a', 'about', 'an', 'are', 'as',
                       'at', 'be', 'by', 'for', 'from', 'how',
                       'in', 'is', 'it', 'of', 'on', 'or', 'that',
@@ -167,65 +167,82 @@ Spark.prototype.cosineSimilarity = function(doc1, doc2) {
  * @param {*} model 
  */
 function getTokens(data, model, n) {
-    //TODO: consider splitting into different functions for readability
     if (model.toLowerCase() === 'bag') {
         return data.split(' ');
     } else if (model.toLowerCase() === 'ngram-char') {
-        var ngramArray = [];
-        var ngram = '';
-        for (var i = 0; i < data.length; i++) {
-            if (i == data.length-1) {
-                if (data[i]) {
-                    ngram += data[i];
-                }
-                ngramArray.push(ngram);
-                break;
-            }
+        return getNGramCharArray(data, n);
+    } else if (model.toLowerCase() === 'ngram-word') {
+        return getNGramWordArray(data, n);
+    }
+}
+
+/**
+ * Returns the ngram-char array
+ * @param {string} data The data in string form 
+ * @param {int} n The n
+ */
+function getNGramCharArray(data, n) {
+    var ngramArray = [];
+    var ngram = '';
+    for (var i = 0; i < data.length; i++) {
+        if (i == data.length-1) {
             if (data[i]) {
                 ngram += data[i];
-                if (ngram.length == n) {
-                    ngramArray.push(ngram);
-                    ngram = '';
-                }
+            }
+            ngramArray.push(ngram);
+            break;
+        }
+        if (data[i]) {
+            ngram += data[i];
+            if (ngram.length == n) {
+                ngramArray.push(ngram);
+                ngram = '';
             }
         }
-        return ngramArray;
-    } else if (model.toLowerCase() === 'ngram-word') {
-        var splitData = data.split(' ');
-        var ngramArray = [];
-        var ngram = [];
-        for (var i = 0; i < splitData.length; i++) {
-            if (i == splitData.length-1) {
-                if (splitData[i]) {
-                    ngram.push(splitData[i]);
+    }
+    return ngramArray;
+}
+
+/**
+ * Returns the ngram-word array
+ * @param {string} data The data in string form 
+ * @param {int} n The n
+ */
+function getNGramWordArray(data, n) {
+    var splitData = data.split(' ');
+    var ngramArray = [];
+    var ngram = [];
+    for (var i = 0; i < splitData.length; i++) {
+        if (i == splitData.length-1) {
+            if (splitData[i]) {
+                ngram.push(splitData[i]);
+            }
+            var ngramStr = '';
+            for (var j = 0; j < ngram.length; j++) {
+                ngramStr += ngram[j];
+                if (j != ngram.length-1) {
+                    ngramStr += ' ';
                 }
+            }
+            ngramArray.push(ngramStr);
+            break;
+        }
+        if (splitData[i]) {
+            ngram.push(splitData[i]);
+            if (ngram.length == n) {
                 var ngramStr = '';
-                for (var j = 0; j < ngram.length; j++) {
+                for (var j = 0; j < n; j++) {
                     ngramStr += ngram[j];
-                    if (j != ngram.length-1) {
+                    if (j != n-1) {
                         ngramStr += ' ';
                     }
                 }
                 ngramArray.push(ngramStr);
-                break;
-            }
-            if (splitData[i]) {
-                ngram.push(splitData[i]);
-                if (ngram.length == n) {
-                    var ngramStr = '';
-                    for (var j = 0; j < n; j++) {
-                        ngramStr += ngram[j];
-                        if (j != n-1) {
-                            ngramStr += ' ';
-                        }
-                    }
-                    ngramArray.push(ngramStr);
-                    ngram = [];
-                }
+                ngram = [];
             }
         }
-        return ngramArray;
     }
+    return ngramArray;
 }
 
 /**
