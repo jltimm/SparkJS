@@ -162,6 +162,25 @@ Spark.prototype.cosineSimilarity = function(doc1, doc2) {
 }
 
 /**
+ * Writes tfidf to file, clears the cache
+ * @param {string} filepath The filepath
+ * @param {data} tfidf The tfidf data
+ * @param {boolean} shouldClearCache The boolean determining if the cache should be cleared or not
+ */
+Spark.prototype.writeToFile = function(filepath, tfidf, shouldClearCache) {
+    fs.writeFile(filepath, tfidf, (err) => {
+        if (err) throw err;
+        if (shouldClearCache) {
+            this._documents = [];
+            this._globalMap = {};
+            this._model = 'bag';
+            this._n = 3;
+            this._stopWords = [];
+        }
+    });
+}
+
+/**
  * Parses the data and splits it into tokens
  * @param {string} data The data in string form
  * @param {*} model 
