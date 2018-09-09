@@ -6,7 +6,7 @@ function Spark() {
     this._globalMap = {};
     this._model = 'bag';
     this._n = 3;
-    this._stopWords = [];
+    this._stopWords = new Map();
 }
 
 module.exports = Spark;
@@ -29,7 +29,7 @@ Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
     var tokens = getTokens(data, this._model, this._n);
     var numTokens = 0;
     tokens.forEach((token) => {
-        if (!token || (this._stopWords.indexOf(token) > -1)) {
+        if (!token || (this._stopWords.has(token))) {
             return;
         }
         token = token.toString().toLowerCase();
@@ -139,12 +139,17 @@ Spark.prototype.setN = function(n) {
  * Initializes the stop words.
  */
 Spark.prototype.initStopWords = function() {
-    // TODO: Add more stop words, consider moving to map instead of array
-    this._stopWords = ['I', 'a', 'about', 'an', 'are', 'as',
-                      'at', 'be', 'by', 'for', 'from', 'how',
-                      'in', 'is', 'it', 'of', 'on', 'or', 'that',
-                      'the', 'this', 'to', 'was', 'what', 'when',
-                      'where', 'who', 'will', 'with', 'the'];
+    // TODO: Add more stop words, consider loading from file
+    var stopWordsMap = new Map();
+    var stopWords = ['I', 'a', 'about', 'an', 'are', 'as',
+                     'at', 'be', 'by', 'for', 'from', 'how',
+                     'in', 'is', 'it', 'of', 'on', 'or', 'that',
+                     'the', 'this', 'to', 'was', 'what', 'when',
+                     'where', 'who', 'will', 'with', 'the'];
+    for (var word in stopWords) {
+        stopWordsMap.set(word, '');
+    }
+    this._stopWords = stopWordsMap;
 }
 
 /**
@@ -175,7 +180,7 @@ Spark.prototype.writeToFile = function(filepath, tfidf, shouldClearCache) {
             this._globalMap = {};
             this._model = 'bag';
             this._n = 3;
-            this._stopWords = [];
+            this._stopWords = new Map();
         }
     });
 }
@@ -303,8 +308,9 @@ function generateUniqueID(documents) {
     }
 }
 
-// TODO: addDirectory
-// TODO: cache scores
-// TODO: document comparisons i.e. nearest neighbor
-// TODO: search for synonyms
-// TODO: write to file, clear cache
+// 1) cache tfidf
+// 2) cache scores
+// 3) document comparisons i.e. nearest neighbor
+// 4) search for synonyms
+// 5) addDirectory
+// 6) load from file into cache
