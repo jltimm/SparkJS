@@ -3,7 +3,7 @@ var path = require('path');
 
 function Spark() {
     this._documents = [];
-    this._globalMap = {};
+    this._globalMap = new Map();
     this._model = 'bag';
     this._synonyms = new Map();
     this._n = 3;
@@ -39,10 +39,10 @@ Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
             documentMap[token] = documentMap[token] + 1;
         } else {
             documentMap[token] = 1;
-            if (this._globalMap[token]) {
-                this._globalMap[token] = this._globalMap[token] + 1;
+            if (this._globalMap.has(token)) {
+                this._globalMap.set(token, this._globalMap.get(token) + 1);
             } else {
-                this._globalMap[token] = 1;
+                this._globalMap.set(token, 1);
             }
         }
     });
@@ -69,7 +69,7 @@ Spark.prototype.addFileSync = function(filename) {
 /**
  * Creates TFIDF from token maps.
  * http://www.tfidf.com/
- * @param {dictionary} globalMap The global token map
+ * @param {map} globalMap The global token map
  * @param {array} fileMaps The list of file mapss
  */
 Spark.prototype.tfidf = function() {
@@ -80,7 +80,7 @@ Spark.prototype.tfidf = function() {
         var tfidfMap = {};
         for (var key in documents.documentMap) {
             var tf = documents.documentMap[key] / documents.numTokens;
-            var idf = Math.log(numFiles / this._globalMap[key]);
+            var idf = Math.log(numFiles / this._globalMap.get(key));
             var tfidf = tf * idf;
             tfidfMap[key] = tfidf;
             score += (tfidf * tfidf);
@@ -100,9 +100,9 @@ Spark.prototype.removeDocument = function(id) {
             continue;
         }
         for (var key in this._documents[i].documentMap) {
-            this._globalMap[key] = this._globalMap[key] - this._documents[i].documentMap[key];
-            if (this._globalMap[key] === 0) {
-                delete this._globalMap[key];
+            this._globalMap.get(key) = this._globalMap.get(key) - this._documents[i].documentMap[key];
+            if (this._globalMap.get(key) === 0) {
+                this._globalMap.delete(key);
             }
         }
         delete this._documents[i];
@@ -197,7 +197,7 @@ Spark.prototype.writeToFile = function(filepath, tfidf, shouldClearCache) {
         if (err) throw err;
         if (shouldClearCache) {
             this._documents = [];
-            this._globalMap = {};
+            this._globalMap = new Map();
             this._model = 'bag';
             this._n = 3;
             this._stopWords = new Map();
