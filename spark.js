@@ -5,6 +5,7 @@ function Spark() {
     this._documents = [];
     this._globalMap = {};
     this._model = 'bag';
+    this._synonyms = new Map();
     this._n = 3;
     this._stopWords = new Map();
 }
@@ -150,6 +151,25 @@ Spark.prototype.initStopWords = function() {
         stopWordsMap.set(word, '');
     }
     this._stopWords = stopWordsMap;
+}
+
+/**
+ * Initializes the synonyms
+ * @param {string} filePath The path to the synonyms file
+ */
+Spark.prototype.initSynonyms = function(filePath) {
+    var synonymsMap = new Map();
+    var contents = fs.readFileSync(filePath);
+    var jsonContent = JSON.parse(contents);
+    for (var synonym in jsonContent) {
+        var wordMap = new Map();
+        var synonyms = jsonContent[synonym].synonyms;
+        for (i in synonyms) {
+            wordMap.set(synonyms[i], null);
+        }
+        synonymsMap.set(synonym, wordMap);
+    }
+    this._synonyms = synonymsMap;
 }
 
 /**
