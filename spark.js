@@ -39,8 +39,9 @@ Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
             documentMap.set(token, documentMap.get(token) + 1);
         } else {
             documentMap.set(token, 1);
-            if (this._globalMap.has(token)) {
-                this._globalMap.set(token, this._globalMap.get(token) + 1);
+            const value = this._globalMap.get(token);
+            if (value) {
+                this._globalMap.set(token, value + 1);
             } else {
                 this._globalMap.set(token, 1);
             }
@@ -77,12 +78,13 @@ Spark.prototype.tfidf = function() {
     const numFiles = this._documents.length;   
     this._documents.forEach((documents) => {
         let score = 0.0;
-        var tfidfMap = {};
+        var tfidfMap = new Map();
         for (const [key, value] of documents.documentMap.entries()) {
             const tf = value / documents.numTokens;
             const idf = Math.log(numFiles / this._globalMap.get(key));
+            // TODO: calculate synonyms here
             const tfidf = tf * idf;
-            tfidfMap[key] = tfidf;
+            tfidfMap.set(key, tfidf);
             score += (tfidf * tfidf);
         }
         tfidfMaps.push({id: documents.id, model: documents.model, tfidf: tfidfMap, score: score});
@@ -179,9 +181,10 @@ Spark.prototype.initSynonyms = function(filepath) {
  */
 Spark.prototype.cosineSimilarity = function(doc1, doc2) {
     var topScore = 0.0;
-    for (var key in doc1.tfidf) {
-        if (key in doc2.tfidf) {
-            topScore += (doc1.tfidf[key] * doc2.tfidf[key]);
+    for (const [key, doc1Value] of doc1.tfidf.entries()) {
+        const doc2Value = doc2.tfidf.get(key);
+        if (doc2Value) {
+            topScore += (doc1Value * doc2Value);
         }
     }
     const score = topScore / (Math.sqrt(doc1.score) * Math.sqrt(doc2.score));
@@ -294,7 +297,7 @@ function getNGramWordArray(data, n) {
 /**
  * Checks if the filename is a text file or not
  * @param {string} name The filename 
- * @param {array} extensions Addition extensions
+ * @param {array} extensions Additional extensions
  */
 function isTextFile(name, extensions) {
     const extname = path.extname(name);
@@ -302,14 +305,12 @@ function isTextFile(name, extensions) {
         return true;
     }
     if (extensions) {
-        var shouldAdd = false;
         extensions.forEach((extension) => {
             if (extname === extension) {
-                shouldAdd = true;
-                return shouldAdd;
+                return true;
             }
         });
-        return shouldAdd;
+        return false;
     }
 }
 
