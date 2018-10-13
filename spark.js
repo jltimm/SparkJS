@@ -16,7 +16,7 @@ module.exports = Spark;
  * 
  * @param {string} data The data in string format
  * @param {string} id The id
- * @param {string} shouldRemoveNumbers Should numbers be removed from the document
+ * @param {boolean} shouldRemoveNumbers Should numbers be removed from the document
  */
 Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
     if (!id) {
@@ -27,8 +27,8 @@ Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
     if (shouldRemoveNumbers) {
         data = data.replace(/[0-9]/g, '');
     }
-    var tokens = getTokens(data, this._model, this._n);
-    var numTokens = 0;
+    const tokens = getTokens(data, this._model, this._n);
+    let numTokens = 0;
     tokens.forEach((token) => {
         if (!token || (this._stopWords.has(token))) {
             return;
@@ -59,7 +59,7 @@ Spark.prototype.addFileSync = function(filename) {
         return;
     }
     try {
-        var data = fs.readFileSync(filename, 'utf8');
+        const data = fs.readFileSync(filename, 'utf8');
         this.addDocument(data, path.basename(filename));
     } catch(err) {
         console.error(err);
@@ -70,18 +70,18 @@ Spark.prototype.addFileSync = function(filename) {
  * Creates TFIDF from token maps.
  * http://www.tfidf.com/
  * @param {map} globalMap The global token map
- * @param {array} fileMaps The list of file mapss
+ * @param {array} fileMaps The list of file maps
  */
 Spark.prototype.tfidf = function() {
     var tfidfMaps = [];
-    var numFiles = this._documents.length;   
+    const numFiles = this._documents.length;   
     this._documents.forEach((documents) => {
-        var score = 0.0;
+        let score = 0.0;
         var tfidfMap = {};
         for (const [key, value] of documents.documentMap.entries()) {
-            var tf = value / documents.numTokens;
-            var idf = Math.log(numFiles / this._globalMap.get(key));
-            var tfidf = tf * idf;
+            const tf = value / documents.numTokens;
+            const idf = Math.log(numFiles / this._globalMap.get(key));
+            const tfidf = tf * idf;
             tfidfMap[key] = tfidf;
             score += (tfidf * tfidf);
         }
@@ -116,7 +116,7 @@ Spark.prototype.removeDocument = function(id) {
  * @param {string} model The model
  */
 Spark.prototype.setModel = function(model) {
-    var modelLowerCase = model.toLowerCase();
+    const modelLowerCase = model.toLowerCase();
     if (modelLowerCase === 'bag' || modelLowerCase === 'ngram-char' || modelLowerCase == 'ngram-word') {
         this._model = model.toLowerCase();
     } else {
@@ -132,21 +132,23 @@ Spark.prototype.setN = function(n) {
     if (Number.isInteger(n) && n > 0) {
         this._n = n;
     } else {
-        console.warn("WARNING: " + n + " is either not a valid integer or less than 0. n will not be changed.");
+        console.warn("WARNING: " + n + " is either not a valid integer or less than 1. n will not be changed.");
     }
 }
 
 /**
  * Initializes the stop words.
  */
-Spark.prototype.initStopWords = function() {
+Spark.prototype.initStopWords = function(stopWords) {
     // TODO: Add more stop words, consider loading from file
     var stopWordsMap = new Map();
-    var stopWords = ['I', 'a', 'about', 'an', 'are', 'as',
+    if (!stopWords) {
+        stopWords = ['I', 'a', 'about', 'an', 'are', 'as',
                      'at', 'be', 'by', 'for', 'from', 'how',
                      'in', 'is', 'it', 'of', 'on', 'or', 'that',
                      'the', 'this', 'to', 'was', 'what', 'when',
                      'where', 'who', 'will', 'with', 'the'];
+    }
     for (var word in stopWords) {
         stopWordsMap.set(word, '');
     }
@@ -155,16 +157,16 @@ Spark.prototype.initStopWords = function() {
 
 /**
  * Initializes the synonyms
- * @param {string} filePath The path to the synonyms file
+ * @param {string} filepath The path to the synonyms file
  */
-Spark.prototype.initSynonyms = function(filePath) {
+Spark.prototype.initSynonyms = function(filepath) {
     var synonymsMap = new Map();
-    var contents = fs.readFileSync(filePath);
-    var jsonContent = JSON.parse(contents);
+    const contents = fs.readFileSync(filepath);
+    const jsonContent = JSON.parse(contents);
     for (var synonym in jsonContent) {
         var wordMap = new Map();
-        var synonyms = jsonContent[synonym].synonyms;
-        for (i in synonyms) {
+        const synonyms = jsonContent[synonym].synonyms;
+        for (var i in synonyms) {
             wordMap.set(synonyms[i], null);
         }
         synonymsMap.set(synonym, wordMap);
@@ -182,7 +184,7 @@ Spark.prototype.cosineSimilarity = function(doc1, doc2) {
             topScore += (doc1.tfidf[key] * doc2.tfidf[key]);
         }
     }
-    var score = topScore / (Math.sqrt(doc1.score) * Math.sqrt(doc2.score));
+    const score = topScore / (Math.sqrt(doc1.score) * Math.sqrt(doc2.score));
     return score;
 }
 
@@ -253,11 +255,11 @@ function getNGramCharArray(data, n) {
  * @param {int} n The n
  */
 function getNGramWordArray(data, n) {
-    var splitData = data.split(' ');
+    const splitData = data.split(' ');
     var ngramArray = [];
     var ngram = [];
     for (var i = 0; i < splitData.length; i++) {
-        if (i == splitData.length-1) {
+        if (i == splitData.length - 1) {
             if (splitData[i]) {
                 ngram.push(splitData[i]);
             }
@@ -295,7 +297,7 @@ function getNGramWordArray(data, n) {
  * @param {array} extensions Addition extensions
  */
 function isTextFile(name, extensions) {
-    var extname = path.extname(name);
+    const extname = path.extname(name);
     if (extname === '.txt' || extname === '.doc' || extname === '.docx') {
         return true;
     }
@@ -304,7 +306,7 @@ function isTextFile(name, extensions) {
         extensions.forEach((extension) => {
             if (extname === extension) {
                 shouldAdd = true;
-                return true;
+                return shouldAdd;
             }
         });
         return shouldAdd;
@@ -321,7 +323,7 @@ function generateUniqueID(documents) {
         ids.push(document.id);
     });
     while (true) {
-        var id = Math.floor(Math.random() * Math.floor(ids.length * 10));
+        const id = Math.floor(Math.random() * Math.floor(ids.length * 10));
         if (!ids.includes(id)) {
             return id;
         }
