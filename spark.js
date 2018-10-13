@@ -22,7 +22,7 @@ Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
     if (!id) {
         id = generateUniqueID(this._documents);
     }
-    var documentMap = {};
+    var documentMap = new Map();
     data = data.replace(/[^\w\s]/gi, '');
     if (shouldRemoveNumbers) {
         data = data.replace(/[0-9]/g, '');
@@ -35,10 +35,10 @@ Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
         }
         token = token.toString().toLowerCase();
         numTokens++;
-        if (documentMap[token]) {
-            documentMap[token] = documentMap[token] + 1;
+        if (documentMap.has(token)) {
+            documentMap.set(token, documentMap.get(token) + 1);
         } else {
-            documentMap[token] = 1;
+            documentMap.set(token, 1);
             if (this._globalMap.has(token)) {
                 this._globalMap.set(token, this._globalMap.get(token) + 1);
             } else {
@@ -78,8 +78,8 @@ Spark.prototype.tfidf = function() {
     this._documents.forEach((documents) => {
         var score = 0.0;
         var tfidfMap = {};
-        for (var key in documents.documentMap) {
-            var tf = documents.documentMap[key] / documents.numTokens;
+        for (const [key, value] of documents.documentMap.entries()) {
+            var tf = value / documents.numTokens;
             var idf = Math.log(numFiles / this._globalMap.get(key));
             var tfidf = tf * idf;
             tfidfMap[key] = tfidf;
@@ -99,8 +99,8 @@ Spark.prototype.removeDocument = function(id) {
         if (this._documents[i].id != id) {
             continue;
         }
-        for (var key in this._documents[i].documentMap) {
-            this._globalMap.get(key) = this._globalMap.get(key) - this._documents[i].documentMap[key];
+        for (const [key, value] of this._documents[i].documentMap.entries()) {
+            this._globalMap.get(key) = this._globalMap.get(key) - value;
             if (this._globalMap.get(key) === 0) {
                 this._globalMap.delete(key);
             }
