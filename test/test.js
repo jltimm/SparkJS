@@ -10,9 +10,9 @@ function runTests() {
     spark.initSynonyms(fullpath);
     spark.setModel('ngram-word');
     spark.setN(0);
-    spark.addDocument('hello there', 1);
+    spark.addDocument('other', 1);
     spark.addDocument('hiiiiii', 2);
-    spark.addDocument('hello there', 3);
+    spark.addDocument('new new new alternative', 3);
     spark.addDocument('test');
     spark.addFileSync('text_files/lorem.txt');
     var tfidf = spark.tfidf();

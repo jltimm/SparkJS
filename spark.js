@@ -82,7 +82,6 @@ Spark.prototype.tfidf = function() {
         for (const [key, value] of documents.documentMap.entries()) {
             const tf = value / documents.numTokens;
             const idf = Math.log(numFiles / this._globalMap.get(key));
-            // TODO: calculate synonyms here
             const tfidf = tf * idf;
             tfidfMap.set(key, tfidf);
             score += (tfidf * tfidf);
@@ -102,8 +101,8 @@ Spark.prototype.removeDocument = function(id) {
             continue;
         }
         for (const [key, value] of this._documents[i].documentMap.entries()) {
-            this._globalMap.get(key) = this._globalMap.get(key) - value;
-            if (this._globalMap.get(key) === 0) {
+            const newValue = this._globalMap.get(key) - value;
+            if (newValue === 0) {
                 this._globalMap.delete(key);
             }
         }
@@ -185,6 +184,9 @@ Spark.prototype.cosineSimilarity = function(doc1, doc2) {
         const doc2Value = doc2.tfidf.get(key);
         if (doc2Value) {
             topScore += (doc1Value * doc2Value);
+        } else if (this._synonyms) {
+            const synonymScore = getSynonymScore(key, doc2.tfidf, this._synonyms);
+            topScore += (doc1Value * synonymScore);
         }
     }
     const score = topScore / (Math.sqrt(doc1.score) * Math.sqrt(doc2.score));
@@ -223,6 +225,24 @@ function getTokens(data, model, n) {
     } else if (model.toLowerCase() === 'ngram-word') {
         return getNGramWordArray(data, n);
     }
+}
+
+/**
+ * Checks if any synonyms of the key exist in the map
+ * @param {string} key The key
+ * @param {map} tfidfMap The tfidf map
+ */
+function getSynonymScore(key, tfidfMap, synonyms) {
+    const synonymMap = synonyms.get(key);
+    if (synonymMap) {
+        for (const [key] of synonymMap.entries()) {
+            const score = tfidfMap.get(key);
+            if (score) {
+                return score * 0.5;
+            }
+        }
+    }
+    return 0;
 }
 
 /**
@@ -334,6 +354,7 @@ function generateUniqueID(documents) {
 // 1) cache tfidf
 // 2) cache scores
 // 3) document comparisons i.e. nearest neighbor
-// 4) search for synonyms
-// 5) addDirectory
-// 6) load from file into cache
+// 4) addDirectory
+// 5) load from file into cache
+// 6) figure out a way to make synonyms work for ngrams
+// 7) update document
