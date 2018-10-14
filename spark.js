@@ -52,16 +52,17 @@ Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
 
 /**
  * Adds a file from disk
- * @param {string} filename 
+ * @param {string} filename The filename
+ * @param {boolean} shouldRemoveNumbers If the numbers should be removed from the files
  */
-Spark.prototype.addFileSync = function(filename) {
+Spark.prototype.addFileSync = function(filename, shouldRemoveNumbers) {
     if (!isTextFile(filename)) {
         console.log("Warning: " + filename + " not added because it is not a text file.");
         return;
     }
     try {
         const data = fs.readFileSync(filename, 'utf8');
-        this.addDocument(data, path.basename(filename));
+        this.addDocument(data, path.basename(filename), shouldRemoveNumbers);
     } catch(err) {
         console.error(err);
     }
@@ -109,6 +110,36 @@ Spark.prototype.removeDocument = function(id) {
         delete this._documents[i];
         this._documents.splice(i, 1);
         break;
+    }
+}
+
+/**
+ * Updates the file that already exists in the document array
+ */
+Spark.prototype.updateFileSync = function(filename, shouldRemoveNumbers) {
+    for (var i = 0; i < this._documents.length; i++) {
+        if (this._documents[i].id != path.basename(filename)) {
+            continue;
+        }
+       delete this._documents[i];
+       this._documents.splice(i, 1);
+       this.addFileSync(filename, shouldRemoveNumbers);
+       break;
+    }
+}
+
+/**
+ * Updates the data that already exists in the document array
+ */
+Spark.prototype.updateDocument = function(data, id, shouldRemoveNumbers) {
+    for (var i = 0; i < this._documents.length; i++) {
+        if (this._documents[i].id != id) {
+            continue;
+        }
+       delete this._documents[i];
+       this._documents.splice(i, 1);
+       this.addDocument(data, id, shouldRemoveNumbers);
+       break;
     }
 }
 
@@ -357,4 +388,3 @@ function generateUniqueID(documents) {
 // 4) addDirectory
 // 5) load from file into cache
 // 6) figure out a way to make synonyms work for ngrams
-// 7) update document
