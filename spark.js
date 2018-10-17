@@ -68,6 +68,16 @@ Spark.prototype.addFileSync = function(filename, shouldRemoveNumbers) {
     }
 }
 
+Spark.prototype.addDirectorySync = function(directory, shouldWalk, shouldRemoveNumbers) {
+    var dir = path.resolve(__dirname, directory);
+    fs.stat(dir, (err, stat) => {
+        if (err) throw err;
+        if (stat && stat.isDirectory()) {
+            throw new Error("ERROR: " + dir + " does not exist.");
+        }
+    });
+}
+
 /**
  * Creates TFIDF from token maps.
  * http://www.tfidf.com/
