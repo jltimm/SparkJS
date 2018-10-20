@@ -4,12 +4,15 @@ var Spark = require('../spark.js');
 function runTests() {
     // TODO: actually add tests
     var synonymsFile = '/synonyms.json';
+    var dir = '/add_dir';
     var fullpath = __dirname + synonymsFile;
+    var dirFullpath = __dirname + dir;
     var spark = new Spark();
     spark.initStopWords();
     spark.initSynonyms(fullpath);
     spark.setModel('bag');
     spark.setN(0);
+    spark.addFileSync(dirFullpath);
     spark.addDocument('other', 1);
     spark.addDocument('hiiiiii', 2);
     spark.updateDocument('hello', 2);

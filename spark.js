@@ -51,31 +51,29 @@ Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
 }
 
 /**
- * Adds a file from disk
+ * Adds a file or directory from disk
  * @param {string} filename The filename
  * @param {boolean} shouldRemoveNumbers If the numbers should be removed from the files
  */
 Spark.prototype.addFileSync = function(filename, shouldRemoveNumbers) {
-    if (!isTextFile(filename)) {
+    var isDirectory = fs.lstatSync(filename).isDirectory();
+    if (!isDirectory && !isTextFile(filename)) {
         console.log("Warning: " + filename + " not added because it is not a text file.");
         return;
     }
     try {
-        const data = fs.readFileSync(filename, 'utf8');
-        this.addDocument(data, path.basename(filename), shouldRemoveNumbers);
+        if (isDirectory) {
+            var files = fs.readdirSync(filename);
+            files.forEach(file => {
+                this.addFileSync(filename + '/' + file);
+            });
+        } else {
+            const data = fs.readFileSync(filename, 'utf8');
+            this.addDocument(data, path.basename(filename), shouldRemoveNumbers);
+        }
     } catch(err) {
         console.error(err);
     }
-}
-
-Spark.prototype.addDirectorySync = function(directory, shouldWalk, shouldRemoveNumbers) {
-    var dir = path.resolve(__dirname, directory);
-    fs.stat(dir, (err, stat) => {
-        if (err) throw err;
-        if (stat && stat.isDirectory()) {
-            throw new Error("ERROR: " + dir + " does not exist.");
-        }
-    });
 }
 
 /**
@@ -398,3 +396,4 @@ function generateUniqueID(documents) {
 // 4) addDirectory
 // 5) load from file into cache
 // 6) figure out a way to make synonyms work for ngrams
+// 7) more logging
