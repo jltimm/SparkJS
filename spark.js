@@ -8,6 +8,7 @@ function Spark() {
     this._synonyms = new Map();
     this._n = 3;
     this._stopWords = new Map();
+    this._noisyLogging = false;
 }
 
 module.exports = Spark;
@@ -215,6 +216,14 @@ Spark.prototype.initSynonyms = function(filepath) {
 }
 
 /**
+ * Set to true if noisy logging is preferred.
+ * @param {boolean} shouldLog The boolean to set logging
+ */
+Spark.prototype.initNoisyLogging = function(shouldLog) {
+    this._noisyLogging = shouldLog;
+}
+
+/**
  * Compares two documents, returns cosine similarity score
  */
 Spark.prototype.cosineSimilarity = function(doc1, doc2) {
@@ -393,7 +402,6 @@ function generateUniqueID(documents) {
 // 1) cache tfidf
 // 2) cache scores
 // 3) document comparisons i.e. nearest neighbor
-// 4) addDirectory
-// 5) load from file into cache
-// 6) figure out a way to make synonyms work for ngrams
-// 7) more logging
+// 4) load from file into cache
+// 5) figure out a way to make synonyms work for ngrams
+// 6) more logging

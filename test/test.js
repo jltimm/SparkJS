@@ -10,6 +10,7 @@ function runTests() {
     var spark = new Spark();
     spark.initStopWords();
     spark.initSynonyms(fullpath);
+    spark.initNoisyLogging(true);
     spark.setModel('bag');
     spark.setN(0);
     spark.addFileSync(dirFullpath);
