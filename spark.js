@@ -18,10 +18,18 @@ module.exports = Spark;
  * @param {string} data The data in string format
  * @param {string} id The id
  * @param {boolean} shouldRemoveNumbers Should numbers be removed from the document
+ * @param {boolean} isUpdate If this document is being updated
  */
-Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
+Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers, isUpdate) {
     if (!id) {
         id = generateUniqueID(this._documents);
+    }
+    if (this._noisyLogging) {
+        if (isUpdate) {
+            console.info("INFO: Updating document: " + id);
+        } else {
+            console.info("INFO: Adding document: " + id);
+        }
     }
     var documentMap = new Map();
     data = data.replace(/[^\w\s]/gi, '');
@@ -55,11 +63,12 @@ Spark.prototype.addDocument = function(data, id, shouldRemoveNumbers) {
  * Adds a file or directory from disk
  * @param {string} filename The filename
  * @param {boolean} shouldRemoveNumbers If the numbers should be removed from the files
+ * @param {boolean} isUpdate If this document is being updated
  */
-Spark.prototype.addFileSync = function(filename, shouldRemoveNumbers) {
+Spark.prototype.addFileSync = function(filename, shouldRemoveNumbers, isUpdate) {
     var isDirectory = fs.lstatSync(filename).isDirectory();
     if (!isDirectory && !isTextFile(filename)) {
-        console.log("Warning: " + filename + " not added because it is not a text file.");
+        console.warn("WARNING: " + filename + " not added because it is not a text file.");
         return;
     }
     try {
@@ -70,7 +79,7 @@ Spark.prototype.addFileSync = function(filename, shouldRemoveNumbers) {
             });
         } else {
             const data = fs.readFileSync(filename, 'utf8');
-            this.addDocument(data, path.basename(filename), shouldRemoveNumbers);
+            this.addDocument(data, filename, shouldRemoveNumbers, isUpdate);
         }
     } catch(err) {
         console.error(err);
@@ -118,6 +127,9 @@ Spark.prototype.removeDocument = function(id) {
         }
         delete this._documents[i];
         this._documents.splice(i, 1);
+        if (this._noisyLogging) {
+            console.info("INFO: Document removed: " + id);
+        }
         break;
     }
 }
@@ -132,7 +144,7 @@ Spark.prototype.updateFileSync = function(filename, shouldRemoveNumbers) {
         }
        delete this._documents[i];
        this._documents.splice(i, 1);
-       this.addFileSync(filename, shouldRemoveNumbers);
+       this.addFileSync(filename, shouldRemoveNumbers, true);
        break;
     }
 }
