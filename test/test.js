@@ -4,12 +4,15 @@ var Spark = require('../spark.js');
 function runTests() {
     // TODO: actually add tests
     var synonymsFile = '/synonyms.json';
-    var dir = '/add_dir';
-    var fullpath = __dirname + synonymsFile;
-    var dirFullpath = __dirname + dir;
+    var addDir = '/add_dir';
+    var stopwordsFile = '/stopwords.csv';
+    var synonymPath = __dirname + synonymsFile;
+    var dirFullpath = __dirname + addDir;
+    var stopwordsPath = __dirname + stopwordsFile;
+
     var spark = new Spark();
-    spark.initStopWords();
-    spark.initSynonyms(fullpath);
+    spark.initStopWordsFromCSVFile(stopwordsPath);
+    spark.initSynonyms(synonymPath);
     spark.initNoisyLogging(true);
     spark.setModel('bag');
     spark.setN(0);

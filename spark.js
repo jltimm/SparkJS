@@ -191,6 +191,7 @@ Spark.prototype.setN = function(n) {
 
 /**
  * Initializes the stop words.
+ * @param {array} stopWords The stop words
  */
 Spark.prototype.initStopWords = function(stopWords) {
     // TODO: Add more stop words, consider loading from file
@@ -204,6 +205,26 @@ Spark.prototype.initStopWords = function(stopWords) {
     }
     for (var word in stopWords) {
         stopWordsMap.set(word, '');
+    }
+    this._stopWords = stopWordsMap;
+}
+
+/**
+ * Initializes the stop words from a CSV file
+ * @param {string} filename The full path for the csv file
+ */
+Spark.prototype.initStopWordsFromCSVFile = function(filename) {
+    var stopWordsmap = new Map();
+    if (this._stopWords) {
+        stopWordsmap = this._stopWords;
+    }
+    var stopWords = fs.readFileSync(filename, 'UTF-8');
+    var words = [];
+    if (stopWords) {
+        words = stopWords.split(',');
+    }
+    for (word in words) {
+        stopWordsmap.set(word, '');
     }
     this._stopWords = stopWordsMap;
 }
@@ -417,3 +438,4 @@ function generateUniqueID(documents) {
 // 4) load from file into cache
 // 5) figure out a way to make synonyms work for ngrams
 // 6) more logging
+// 7) save and reload state into json file
