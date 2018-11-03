@@ -214,17 +214,20 @@ Spark.prototype.initStopWords = function(stopWords) {
  * @param {string} filename The full path for the csv file
  */
 Spark.prototype.initStopWordsFromCSVFile = function(filename) {
-    var stopWordsmap = new Map();
+    var stopWordsMap = new Map();
     if (this._stopWords) {
-        stopWordsmap = this._stopWords;
+        stopWordsMap = this._stopWords;
     }
     var stopWords = fs.readFileSync(filename, 'UTF-8');
     var words = [];
     if (stopWords) {
         words = stopWords.split(',');
     }
+    if (this._noisyLogging) {
+        console.info("INFO: Adding " + words.length + " stop words.");
+    }
     for (word in words) {
-        stopWordsmap.set(word, '');
+        stopWordsMap.set(word, '');
     }
     this._stopWords = stopWordsMap;
 }

@@ -11,9 +11,9 @@ function runTests() {
     var stopwordsPath = __dirname + stopwordsFile;
 
     var spark = new Spark();
-    spark.initStopWordsFromCSVFile(stopwordsPath);
-    spark.initSynonyms(synonymPath);
     spark.initNoisyLogging(true);
+    spark.initSynonyms(synonymPath);
+    spark.initStopWordsFromCSVFile(stopwordsPath);
     spark.setModel('bag');
     spark.setN(0);
     spark.addFileSync(dirFullpath);
