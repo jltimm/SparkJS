@@ -240,13 +240,18 @@ Spark.prototype.initSynonyms = function(filepath) {
     var synonymsMap = new Map();
     const contents = fs.readFileSync(filepath);
     const jsonContent = JSON.parse(contents);
+    var numSynonyms = 0;
     for (var synonym in jsonContent) {
         var wordMap = new Map();
         const synonyms = jsonContent[synonym].synonyms;
         for (var i in synonyms) {
             wordMap.set(synonyms[i], null);
         }
+        numSynonyms++;
         synonymsMap.set(synonym, wordMap);
+    }
+    if (this._noisyLogging) {
+        console.info("INFO: Adding synonyms for " + numSynonyms + " words");
     }
     this._synonyms = synonymsMap;
 }
@@ -256,6 +261,9 @@ Spark.prototype.initSynonyms = function(filepath) {
  * @param {boolean} shouldLog The boolean to set logging
  */
 Spark.prototype.initNoisyLogging = function(shouldLog) {
+    if (shouldLog) {
+        console.info("INFO: Noisy logging initialized.");
+    }
     this._noisyLogging = shouldLog;
 }
 
@@ -286,6 +294,9 @@ Spark.prototype.cosineSimilarity = function(doc1, doc2) {
 Spark.prototype.writeToFile = function(filepath, tfidf, shouldClearCache) {
     fs.writeFile(filepath, tfidf, (err) => {
         if (err) throw err;
+        if (this._noisyLogging) {
+            console.info("INFO: Writing tfidf to file: " + filepath);
+        }
         if (shouldClearCache) {
             this._documents = [];
             this._globalMap = new Map();
