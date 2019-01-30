@@ -14,7 +14,7 @@ function Spark() {
 module.exports = Spark;
 
 /**
- * 
+ * Adds a document to to the corpus
  * @param {string} data The data in string format
  * @param {string} id The id
  * @param {boolean} shouldRemoveNumbers Should numbers be removed from the document
@@ -89,8 +89,6 @@ Spark.prototype.addFileSync = function(filename, shouldRemoveNumbers, isUpdate) 
 /**
  * Creates TFIDF from token maps.
  * http://www.tfidf.com/
- * @param {map} globalMap The global token map
- * @param {array} fileMaps The list of file maps
  */
 Spark.prototype.tfidf = function() {
     var tfidfMaps = [];
@@ -136,6 +134,8 @@ Spark.prototype.removeDocument = function(id) {
 
 /**
  * Updates the file that already exists in the document array
+ * @param {string} filename The filename
+ * @param {boolean} shouldRemoveNumber If numbers should be removed from the files
  */
 Spark.prototype.updateFileSync = function(filename, shouldRemoveNumbers) {
     for (var i = 0; i < this._documents.length; i++) {
@@ -151,6 +151,9 @@ Spark.prototype.updateFileSync = function(filename, shouldRemoveNumbers) {
 
 /**
  * Updates the data that already exists in the document array
+ * @param {data} data The contents of the file
+ * @param {int} id The id of the file
+ * @param {boolean} shouldRemoveNumbers If the numbers should be removed
  */
 Spark.prototype.updateDocument = function(data, id, shouldRemoveNumbers) {
     for (var i = 0; i < this._documents.length; i++) {
@@ -269,9 +272,13 @@ Spark.prototype.initNoisyLogging = function(shouldLog) {
 
 /**
  * Compares two documents, returns cosine similarity score
+ * @param {document} doc1 The first document
+ * @param {document} doc2 The second document
  */
 Spark.prototype.cosineSimilarity = function(doc1, doc2) {
     var topScore = 0.0;
+    console.log(doc1);
+    console.log(doc2);
     for (const [key, doc1Value] of doc1.tfidf.entries()) {
         const doc2Value = doc2.tfidf.get(key);
         if (doc2Value) {
@@ -283,6 +290,35 @@ Spark.prototype.cosineSimilarity = function(doc1, doc2) {
     }
     const score = topScore / (Math.sqrt(doc1.score) * Math.sqrt(doc2.score));
     return score;
+}
+
+/**
+ * Compares the two document, returns cosine similary score
+ * @param {string} id1 The first id
+ * @param {string} id2 The second id
+ */
+Spark.prototype.cosineSimilarityById = function(id1, id2) {
+    var doc1;
+    var doc2;
+    for (const document of this.tfidf()) {
+        if (document.id === id1) {
+            doc1 = document;
+        }
+        if (document.id === id2) {
+            doc2 = document;
+        }
+        if (doc1 != null && doc2 != null) {
+            return this.cosineSimilarity(doc1, doc2);
+        } 
+    }
+    if (doc1 == null && doc2 == null) {
+        console.error("ERROR: documents with ids " + id1 + " and " + id2 + " were not found.");
+    } else if (doc1 == null) {
+        console.error("ERROR: document with id " + id1 + " was not found.");
+    } else if (doc2 == null) {
+        console.error("ERROR: document with id " + id2 + " was not found.");
+    }
+    return null;
 }
 
 /**
@@ -310,7 +346,8 @@ Spark.prototype.writeToFile = function(filepath, tfidf, shouldClearCache) {
 /**
  * Parses the data and splits it into tokens
  * @param {string} data The data in string form
- * @param {*} model 
+ * @param {string} model The model 
+ * @param {int} n The n being used
  */
 function getTokens(data, model, n) {
     if (model.toLowerCase() === 'bag') {
@@ -326,6 +363,7 @@ function getTokens(data, model, n) {
  * Checks if any synonyms of the key exist in the map
  * @param {string} key The key
  * @param {map} tfidfMap The tfidf map
+ * @param {array} synonyms The synonyms
  */
 function getSynonymScore(key, tfidfMap, synonyms) {
     const synonymMap = synonyms.get(key);

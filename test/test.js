@@ -26,6 +26,7 @@ function runTests() {
     spark.updateFileSync('text_files/lorem.txt');
     var tfidf = spark.tfidf();
     console.log(spark.cosineSimilarity(tfidf[0], tfidf[2]));
+    console.log(spark.cosineSimilarityById(1, 2));
 }
 
 runTests();
